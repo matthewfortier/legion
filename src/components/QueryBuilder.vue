@@ -110,6 +110,7 @@ export default {
 
   i {
     margin-right: 10px;
+    margin-left: 10px;
     color: #1b77d2;
   }
 }

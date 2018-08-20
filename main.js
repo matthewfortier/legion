@@ -56,7 +56,9 @@ ipcMain.on("cross-component", function (event, args) {
 })
 
 ipcMain.on("stop-query", () => {
-    clearTimeout(this.updater);
+    backgroundWindow.close();
+    mainWindow.webContents.send("toggleLoading");
+    createBackgroundProcess();
 })
 
 ipcMain.on("browse", (event) => {
@@ -88,3 +90,7 @@ ipcMain.on("match", (event, args) => {
 ipcMain.on("toggleLoading", (event, args) => {
     mainWindow.webContents.send("toggleLoading");
 });
+
+ipcMain.on("platform", () => {
+    mainWindow.webContents.send("platform", process.platform)
+})
