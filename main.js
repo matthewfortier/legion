@@ -2,9 +2,13 @@ const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const ipcMain = electron.ipcMain
-const FindFiles = require("node-find-files");
-const Q = require("q");
-const FS = require("file-system");
+const shell = electron.shell
+const dialog = electron.dialog
+
+const fs = require("file-system");
+const FileHound = require('filehound');
+const { FileSniffer, asArray } = require('filesniffer');
+var lineNumber = require('line-number');
 
 let url
 if (process.env.NODE_ENV === 'DEV') {
@@ -13,46 +17,33 @@ if (process.env.NODE_ENV === 'DEV') {
     url = `file://${process.cwd()}/dist/index.html`
 }
 
+let mainWindow
+let backgroundWindow
+
 app.on('ready', () => {
-    let window = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
         frame: (process.platform == "win32") ? true : false,
         titleBarStyle: (process.platform == "darwin") ? "hiddenInset" : "default"
     });
-    window.loadURL(url)
+    mainWindow.loadURL(url)
 
-    window.webContents.send("process", process.platform)
+    mainWindow.webContents.send("process", process.platform)
+
+    createBackgroundProcess();
 })
 
-function searchFile(content, regex, lineRegEx) {
-    var match = content.match(regex),
-        linesMatch = content.match(lineRegEx)
-
-    return {
-        match: match,
-        lines: linesMatch
-    };
-}
-
-function getRegEx(pattern, regex) {
-    var flags, term, grabLineRegEx
-
-    if (typeof pattern === 'object' && pattern.flags) {
-        term = pattern.term
-        flags = pattern.flags
-    } else {
-        term = pattern
-        flags = 'g'
-    }
-
-    grabLineRegEx = "(.*" + term + ".*)"
-
-    if (regex === 'line') {
-        return new RegExp(grabLineRegEx, flags)
-    }
-
-    return new RegExp(term, flags);
+function createBackgroundProcess() {
+    backgroundWindow = new BrowserWindow({ "show": false })
+    backgroundWindow.loadURL(`file://${process.cwd()}/background.html`)
+    backgroundWindow.on("ready", () => {
+        console.log("Background process ready")
+    })
+    backgroundWindow.on('closed', () => {
+        console.log('background window closed')
+    });
+    return backgroundWindow
 }
 
 ipcMain.on("cross-component", function (event, args) {
@@ -64,44 +55,36 @@ ipcMain.on("cross-component", function (event, args) {
         event.sender.send(args.message, args.data);
 })
 
+ipcMain.on("stop-query", () => {
+    clearTimeout(this.updater);
+})
+
+ipcMain.on("browse", (event) => {
+    var path = dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory']
+    })
+
+    event.sender.send("directory", path);
+})
+
+ipcMain.on("open", (event, path) => {
+    console.log(path);
+    shell.openItem(path);
+})
+
 ipcMain.on("query", function (event, args) {
-    console.log(args.query);
-    console.log(args.directory);
+    console.log("bg-query")
+    backgroundWindow.webContents.send("bg-query", args);
+});
 
-    var finder = new FindFiles({
-        rootFolder: args.directory,
-        filterFunction: function (path, stat) {
-            return (path.endsWith(args.query)) ? true : false;
-        }
-    });
+ipcMain.on("file", (event, args) => {
+    mainWindow.webContents.send("file", args);
+});
 
-    finder.on("match", function (strPath, stat) {
-        //console.log(stat);
+ipcMain.on("match", (event, args) => {
+    mainWindow.webContents.send("match", args);
+});
 
-        // var file = FS.readFileSync(strPath, "utf-8")
-
-        // var results = searchFile(file.toString(), getRegEx(args.content), getRegEx(args.content, 'line'))
-
-        // console.log(results);
-
-        // if (results.lines) {
-        //     event.sender.send("fileResponse", {
-        //         filename: strPath.replace(args.directory, ""),
-        //         matches: results.lines
-        //     })
-        // }
-
-        event.sender.send("fileResponse", strPath)
-    })
-    finder.on("complete", function () {
-        console.log("Finished")
-    })
-    finder.on("patherror", function (err, strPath) {
-        console.log("Error for Path " + strPath + " " + err)  // Note that an error in accessing a particular file does not stop the whole show
-    })
-    finder.on("error", function (err) {
-        console.log("Global Error " + err);
-    })
-    finder.startSearch();
-
+ipcMain.on("toggleLoading", (event, args) => {
+    mainWindow.webContents.send("toggleLoading");
 });

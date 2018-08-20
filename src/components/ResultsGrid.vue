@@ -5,7 +5,7 @@
                 <tr><th>Filename</th></tr>
             </thead>
             <tbody>
-                <tr v-for="file in files" :key="file.filename" v-on:click="loadResults(file)">
+                <tr v-on:dblclick="openFile(file.path)" v-for="file in files" :key="file.filename" v-on:click="loadResults(file.filename)">
                     <td>{{ file.filename }}</td>
                 </tr>
             </tbody>
@@ -20,7 +20,8 @@ export default {
   name: "ResultsGrid",
   data() {
     return {
-      files: []
+      files: [],
+      matches: []
     };
   },
   methods: {
@@ -29,6 +30,9 @@ export default {
         message: "loadResults",
         data: file
       });
+    },
+    openFile: path => {
+      ipcRenderer.send("open", path);
     }
   },
   mounted() {
@@ -38,10 +42,10 @@ export default {
       that.files = [];
     });
 
-    ipcRenderer.on("fileResponse", function(event, args) {
-      // eslint-disable-next-line
-      console.log(args);
-      that.files.push(args);
+    ipcRenderer.on("file", function(event, args) {
+      if (!that.files.filter(e => e.filename === args.filename).length > 0) {
+        that.files.push(args);
+      }
     });
   }
 };
@@ -50,6 +54,10 @@ export default {
 <style lang="scss" scoped>
 .results-grid {
   overflow-x: scroll;
+}
+
+table {
+  width: 100%;
 }
 
 th {

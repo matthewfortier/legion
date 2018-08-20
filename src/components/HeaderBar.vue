@@ -3,7 +3,7 @@
       <div class="left">
         <i v-on:click="runQuery()" id="run" class="fas fa-play" data-toggle="tooltip" data-placement="bottom" title="Run Query"></i>
         <i id="pause" class="fas fa-pause" data-toggle="tooltip" data-placement="bottom" title="Pause"></i>
-        <i id="stop" class="fas fa-stop" data-toggle="tooltip" data-placement="bottom" title="Stop"></i>
+        <i v-on:click="stopQuery()" id="stop" class="fas fa-stop" data-toggle="tooltip" data-placement="bottom" title="Stop"></i>
       </div>
       <div class="center">
         <span>legion</span>
@@ -22,6 +22,11 @@ export default {
       // eslint-disable-next-line
       console.log("run-query");
       ipcRenderer.send("cross-component", "run-query");
+    },
+    stopQuery: () => {
+      // eslint-disable-next-line
+      console.log("stop-query");
+      ipcRenderer.send("stop-query");
     }
   }
 };

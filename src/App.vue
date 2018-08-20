@@ -10,9 +10,7 @@
         </div>
       </div>
     </section>
-    <footer>
-
-    </footer>
+    <FooterBar />
   </div>
 </template>
 
@@ -26,6 +24,7 @@ import QueryBuilder from "@/components/QueryBuilder";
 import HeaderBar from "@/components/HeaderBar";
 import ResultsGrid from "@/components/ResultsGrid";
 import ResultsView from "@/components/ResultsView";
+import FooterBar from "@/components/FooterBar";
 
 export default {
   name: "app",
@@ -33,7 +32,8 @@ export default {
     QueryBuilder,
     HeaderBar,
     ResultsGrid,
-    ResultsView
+    ResultsView,
+    FooterBar
   },
   data() {
     return {
@@ -66,6 +66,7 @@ body {
   padding: 0;
 
   height: 100vh;
+  background-color: #151d2c;
 }
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
@@ -93,11 +94,6 @@ body {
   display: flex;
   overflow: hidden;
   width: 100%;
-}
-
-footer {
-  background-color: $header-color;
-  height: 31px;
 }
 
 .darwin-header {

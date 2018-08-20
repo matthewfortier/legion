@@ -1,0 +1,46 @@
+<script type="text/javascript">
+    const { ipcRenderer } = require('electron');
+    const fs = require("file-system");
+    const FileHound = require('filehound');
+    const { FileSniffer, asArray } = require('filesniffer');
+    var lineNumber = require('line-number');
+
+    ipcRenderer.on("bg-query", (event, args) => {
+        console.log(args.query)
+        console.log(args.directory)
+
+        var exts = args.query.split(";");
+        console.log(exts);
+
+        const files = FileHound.create()
+            .paths(args.directory)
+            .ext(exts)
+            .find()
+
+        files.then((files) => {
+            console.log(files);
+            files.forEach((file, index) => {
+                console.log(index);
+                var filename = file.replace(args.directory, "");
+                var path = file;
+                var data = fs.readFileSync(file, 'utf8')
+
+                var match = lineNumber(data, new RegExp(args.content))
+                if (match.length > 0) {
+                    console.log(index);
+                    ipcRenderer.send("file", {
+                        filename: filename,
+                        path: path
+                    })
+                    ipcRenderer.send("match", {
+                        path: path,
+                        file: filename,
+                        match: match
+                    })
+                }
+            })
+            ipcRenderer.send("toggleLoading");
+        })
+    })
+
+</script>

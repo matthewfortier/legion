@@ -3,18 +3,19 @@
 
       <div class="inputs">
          <div class="legion-input">
-          <span>Filename</span>
+          <span>Filename:</span>
           <input v-model="query" type="text" placeholder="Filename and/or extensions...">
         </div>
 
         <div class="legion-input">
-          <span>Containing</span>
+          <span>Containing:</span>
           <input v-model="content" type="text" placeholder="Containing text or expression...">
         </div>
 
         <div class="legion-input">
-          <span>Directory</span>
+          <span>Directory:</span>
           <input v-model="directory" type="text" placeholder="Root directory...">
+          <i v-on:click="browse()" id="loadPath" class="fas fa-folder-open" data-toggle="tooltip" data-placement="bottom" title="Browse..."></i>
         </div>
       </div>
 
@@ -39,18 +40,26 @@ export default {
       // eslint-disable-next-line
       console.log("Send Query");
       this.files = [];
+      ipcRenderer.send("cross-component", "toggleLoading");
       ipcRenderer.send("cross-component", "clear");
       ipcRenderer.send("query", {
         content: this.content,
         query: this.query,
         directory: this.directory
       });
+    },
+    browse: () => {
+      ipcRenderer.send("browse");
     }
   },
   mounted() {
     var that = this;
     ipcRenderer.on("run-query", function() {
       that.sendQuery();
+    });
+
+    ipcRenderer.on("directory", (event, args) => {
+      that.directory = args;
     });
 
     $(".legion-input input").on("focus", () => {
@@ -88,6 +97,7 @@ export default {
     font-weight: bold;
     margin: 0 10px;
     text-transform: uppercase;
+    user-select: none;
   }
 
   input {
@@ -96,6 +106,11 @@ export default {
     outline: none;
     color: #1b77d2;
     width: 100%;
+  }
+
+  i {
+    margin-right: 10px;
+    color: #1b77d2;
   }
 }
 
