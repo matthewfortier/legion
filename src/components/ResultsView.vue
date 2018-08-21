@@ -1,10 +1,5 @@
 <template>
-    <!-- <pre class="results-view">
-        <span v-for="match in displayed" :key="match.match"> 
-            {{ match.match }}
-        </span>
-    </pre> -->
-    <div class="results-view">
+    <div class="results-view" data-simplebar> 
         <tr><th colspan="2">{{ file }}</th><th></th></tr>
         <table>
             <tbody>
@@ -21,6 +16,8 @@
 
 <script>
 const { ipcRenderer } = window.require("electron");
+import "simplebar"; // or "import SimpleBar from 'simplebar';" if you want to use it manually.
+import "simplebar/dist/simplebar.css";
 
 export default {
   name: "ResultsView",

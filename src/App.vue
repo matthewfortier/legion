@@ -55,6 +55,7 @@ export default {
 
 <style lang="scss">
 @import "../node_modules/@fortawesome/fontawesome-free/css/all.min.css";
+@import url("https://fonts.googleapis.com/css?family=Karla");
 
 $header-color: #151d2c;
 $body-color: lighten(#151d2c, 2);
@@ -69,7 +70,7 @@ body {
   background-color: #151d2c;
 }
 #app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-family: "Karla", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: white;

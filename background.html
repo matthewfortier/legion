@@ -5,6 +5,20 @@
     const { FileSniffer, asArray } = require('filesniffer');
     var lineNumber = require('line-number');
 
+    var async = require("async");
+    var os = require('os'),
+        cpuCount = os.cpus().length;
+
+
+    function splitArrayIntoChunks(arr, chunkLen) {
+        var chunkList = []
+        var chunkCount = Math.ceil(arr.length / chunkLen)
+        for (var i = 0; i < chunkCount; i++) {
+            chunkList.push(arr.splice(0, chunkLen))
+        }
+        return chunkList
+    }
+
     ipcRenderer.on("bg-query", (event, args) => {
         console.log(args.query)
         console.log(args.directory)
@@ -19,27 +33,36 @@
 
         files.then((files) => {
             console.log(files);
-            files.forEach((file, index) => {
-                console.log(index);
-                var filename = file.replace(args.directory, "");
-                var path = file;
-                var data = fs.readFileSync(file, 'utf8')
 
-                var match = lineNumber(data, new RegExp(args.content))
-                if (match.length > 0) {
+            var chunks = splitArrayIntoChunks(files, cpuCount)
+
+            async.every(chunks, function (files, callback) {
+                files.forEach((file, index) => {
                     console.log(index);
-                    ipcRenderer.send("file", {
-                        filename: filename,
-                        path: path
-                    })
-                    ipcRenderer.send("match", {
-                        path: path,
-                        file: filename,
-                        match: match
-                    })
+                    var filename = file.replace(args.directory, "");
+                    var path = file;
+                    var data = fs.readFileSync(file, 'utf8')
+
+                    var match = lineNumber(data, new RegExp(args.content))
+                    if (match.length > 0) {
+                        console.log(index);
+                        ipcRenderer.send("file", {
+                            filename: filename,
+                            path: path
+                        })
+                        ipcRenderer.send("match", {
+                            path: path,
+                            file: filename,
+                            match: match
+                        })
+                    }
+                })
+                callback(null, true);
+            }, function (err, result) {
+                if (result) {
+                    ipcRenderer.send("toggleLoading");
                 }
-            })
-            ipcRenderer.send("toggleLoading");
+            });
         })
     })
 

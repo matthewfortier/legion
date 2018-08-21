@@ -24,7 +24,7 @@ app.on('ready', () => {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
-        frame: (process.platform == "win32") ? true : false,
+        frame: false,
         titleBarStyle: (process.platform == "darwin") ? "hiddenInset" : "default"
     });
     mainWindow.loadURL(url)

@@ -1,5 +1,5 @@
 <template>
-    <div class="results-grid">
+    <div class="results-grid" data-simplebar>
         <table id="results-table">
             <thead>
                 <tr><th>Filename</th></tr>
@@ -15,6 +15,8 @@
 
 <script>
 const { ipcRenderer } = window.require("electron");
+import "simplebar"; // or "import SimpleBar from 'simplebar';" if you want to use it manually.
+import "simplebar/dist/simplebar.css";
 
 export default {
   name: "ResultsGrid",
@@ -54,6 +56,10 @@ export default {
 <style lang="scss" scoped>
 .results-grid {
   overflow-x: scroll;
+}
+
+.simplebar-scrollbar:before {
+  background: lighten(#1b77d2, 10);
 }
 
 table {

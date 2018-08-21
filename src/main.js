@@ -1,5 +1,6 @@
 import Vue from "vue";
 import App from "./App.vue";
+import Vuebar from "vuebar";
 
 Vue.config.productionTip = false;
 
@@ -9,6 +10,8 @@ Vue.filter("highlight", (word, query) => {
     return "<strong>" + matchedText + "</strong>";
   });
 });
+
+Vue.use(Vuebar);
 
 new Vue({
   render: h => h(App)

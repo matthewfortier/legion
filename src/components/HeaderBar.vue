@@ -87,7 +87,7 @@ span {
   -webkit-app-region: no-drag;
 
   &.darwin {
-    padding-left: 85px;
+    padding-left: 75px;
   }
 }
 
@@ -102,14 +102,6 @@ span {
   -webkit-app-region: no-drag;
 
   i {
-    height: 38px;
-    width: 38px;
-    padding: 0 5px;
-    text-align: center;
-    vertical-align: center;
-    margin: 0;
-    line-height: 38px;
-
     &:hover {
       background-color: lighten(#1b77d2, 10);
     }
@@ -125,7 +117,10 @@ span {
 }
 
 i {
-  margin-right: 15px;
+  padding: 0 7.5px;
+  height: 38px;
+  line-height: 38px;
+  cursor: pointer;
 }
 
 #run,
