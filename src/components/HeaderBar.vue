@@ -1,8 +1,8 @@
 <template>
     <div class="header-bar">
-      <div v-bind:class="(os == 'darwin') ? 'darwin' : ''" class="left">
-        <i v-on:click="runQuery()" id="run" class="fas fa-play" data-toggle="tooltip" data-placement="bottom" title="Run Query"></i>
-        <i v-on:click="stopQuery()" id="stop" class="fas fa-stop" data-toggle="tooltip" data-placement="bottom" title="Stop"></i>
+      <div v-bind:class="(os == 'darwin' && !maximized) ? 'darwin' : ''" class="left">
+        <i v-on:click="runQuery()" id="run" class="fas fa-play" title="Run Query"></i>
+        <i v-on:click="stopQuery()" id="stop" class="fas fa-stop" title="Stop"></i>
       </div>
       <div class="center">
         <span>legion</span>
@@ -19,13 +19,14 @@
 
 <script>
 const { ipcRenderer } = window.require("electron");
-const BrowserWindow = window.require("electron").remote;
+const BrowserWindow = window.require("electron").remote.BrowserWindow;
 
 export default {
   name: "HeaderBar",
   data() {
     return {
-      os: process.platform
+      os: process.platform,
+      maximized: false
     };
   },
   methods: {
@@ -52,6 +53,8 @@ export default {
   mounted() {
     var that = this;
     that.getPlatform();
+
+    that.win = BrowserWindow.getFocusedWindow();
 
     ipcRenderer.on("platform", (event, args) => {
       that.os = args;

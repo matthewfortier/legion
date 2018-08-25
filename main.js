@@ -51,13 +51,25 @@ ipcMain.on("cross-component", function (event, args) {
         console.log(args)
         event.sender.send(args);
     }
-    else
+    else {
+        console.log(args.message);
+        console.log(args.data);
         event.sender.send(args.message, args.data);
+    }
+})
+
+ipcMain.on("cross-component-process", function (event, args) {
+    if (typeof args === "string") {
+        mainWindow.webContents.send(args);
+    }
+    else {
+        mainWindow.webContents.send(args.message, args.data);
+    }
 })
 
 ipcMain.on("stop-query", () => {
     backgroundWindow.close();
-    mainWindow.webContents.send("toggleLoading");
+    mainWindow.webContents.send("stop-loading");
     createBackgroundProcess();
 })
 
@@ -87,8 +99,12 @@ ipcMain.on("match", (event, args) => {
     mainWindow.webContents.send("match", args);
 });
 
-ipcMain.on("toggleLoading", (event, args) => {
-    mainWindow.webContents.send("toggleLoading");
+ipcMain.on("stop-loading", (event, args) => {
+    mainWindow.webContents.send("stop-loading");
+});
+
+ipcMain.on("start-loading", (event, args) => {
+    mainWindow.webContents.send("start-loading");
 });
 
 ipcMain.on("platform", () => {

@@ -40,7 +40,7 @@ export default {
       // eslint-disable-next-line
       console.log("Send Query");
       this.files = [];
-      ipcRenderer.send("cross-component", "toggleLoading");
+      ipcRenderer.send("cross-component", "start-loading");
       ipcRenderer.send("cross-component", "clear");
       ipcRenderer.send("query", {
         content: this.content,

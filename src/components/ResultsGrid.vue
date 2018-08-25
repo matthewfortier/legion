@@ -2,11 +2,12 @@
     <div class="results-grid" data-simplebar>
         <table id="results-table">
             <thead>
-                <tr><th>Filename</th></tr>
+                <tr><th>Filename</th><th>Path</th></tr>
             </thead>
             <tbody>
                 <tr v-on:dblclick="openFile(file.path)" v-for="file in files" :key="file.filename" v-on:click="loadResults(file.filename)">
                     <td>{{ file.filename }}</td>
+                    <td>{{ file.path }}</td>
                 </tr>
             </tbody>
         </table>
@@ -44,10 +45,18 @@ export default {
       that.files = [];
     });
 
+    ipcRenderer.on("files-no-content", (event, args) => {
+      // eslint-disable-next-line
+      console.log(args);
+      that.files = args;
+    });
+
     ipcRenderer.on("file", function(event, args) {
-      if (!that.files.filter(e => e.filename === args.filename).length > 0) {
-        that.files.push(args);
-      }
+      args.forEach(file => {
+        if (!that.files.filter(e => e.filename === file.filename).length > 0) {
+          that.files.push(file);
+        }
+      });
     });
   }
 };

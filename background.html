@@ -32,37 +32,82 @@
             .find()
 
         files.then((files) => {
-            console.log(files);
 
-            var chunks = splitArrayIntoChunks(files, cpuCount)
-
-            async.every(chunks, function (files, callback) {
-                files.forEach((file, index) => {
-                    console.log(index);
-                    var filename = file.replace(args.directory, "");
-                    var path = file;
-                    var data = fs.readFileSync(file, 'utf8')
-
-                    var match = lineNumber(data, new RegExp(args.content))
-                    if (match.length > 0) {
-                        console.log(index);
-                        ipcRenderer.send("file", {
-                            filename: filename,
-                            path: path
-                        })
-                        ipcRenderer.send("match", {
-                            path: path,
-                            file: filename,
-                            match: match
-                        })
-                    }
-                })
-                callback(null, true);
-            }, function (err, result) {
-                if (result) {
-                    ipcRenderer.send("toggleLoading");
-                }
+            ipcRenderer.send("cross-component-process", {
+                message: "files-searching",
+                data: files.length
             });
+
+            if (args.content == null || args.content == "") {
+
+                var objs = [];
+
+                files.forEach((file, index) => {
+                    objs.push({
+                        filename: file.replace(/^.*[\\\/]/, ''),
+                        path: file
+                    });
+                });
+
+                ipcRenderer.send("cross-component-process", {
+                    message: "files-no-content",
+                    data: objs
+                });
+
+                ipcRenderer.send("cross-component-process", "hide-results-view");
+
+                ipcRenderer.send("stop-loading");
+            } else {
+                var chunks = splitArrayIntoChunks(files, cpuCount)
+                var matchCounter = 0;
+
+                async.every(chunks, function (files, callback) {
+                    var matches = [];
+                    var paths = [];
+                    var filesLength = files.length;
+                    files.forEach((file, index) => {
+                        var filename = file.replace(/^.*[\\\/]/, '')
+                        var path = file;
+                        var data = fs.readFileSync(file, 'utf8')
+
+                        ipcRenderer.send("cross-component-process", "increment-searched");
+
+                        var match = lineNumber(data, new RegExp(args.content))
+                        if (match.length > 0) {
+
+                            paths.push({
+                                filename: filename,
+                                path: path
+                            });
+                            matches.push({
+                                path: path,
+                                file: filename,
+                                match: match
+                            });
+
+                            if (paths.length > Math.ceil(filesLength * .05)) {
+                                ipcRenderer.send("file", paths);
+                                paths = [];
+                            }
+
+                            if (matches.length > Math.ceil(filesLength * .05)) {
+                                ipcRenderer.send("match", matches);
+                                matches = [];
+                            }
+
+                            matchCounter++;
+                        }
+                    })
+                    ipcRenderer.send("match", matches);
+                    ipcRenderer.send("file", paths);
+                    callback(null, true);
+                }, function (err, result) {
+                    if (result) {
+                        ipcRenderer.send("stop-loading");
+                        ipcRenderer.send("match-count", matchCounter);
+                    }
+                });
+            }
         })
     })
 

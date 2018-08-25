@@ -7,7 +7,16 @@
             </div>
         </div>
         <div v-bind:class="loading ? 'loading' : ''" class="footer-bar-content">
-            <div v-if="loading" class="loading-message">Searching...</div>
+            <div class="left">
+              <div v-if="loading" class="loading-message">Searching {{searching}} files...</div>
+            </div>
+            <div class="center"></div>
+            <div class="right">
+              <div class="progress-bar">
+                <p>{{ searched }} / {{ searching }}</p>
+                <span v-bind:style="{ width: (searched / searching) * 100 + '%' }"></span>
+              </div>
+            </div>
         </div>
     </div>
 </template>
@@ -19,18 +28,43 @@ export default {
   name: "FooterBar",
   data() {
     return {
-      loading: false
+      loading: false,
+      searching: null,
+      searched: 0,
+      matched: null
     };
   },
   methods: {
-    toggleLoading() {
-      this.loading = !this.loading;
+    stopLoading() {
+      this.loading = false;
+    },
+    startLoading() {
+      this.loading = true;
     }
   },
   mounted() {
     var that = this;
-    ipcRenderer.on("toggleLoading", () => {
-      that.toggleLoading();
+    ipcRenderer.on("files-searching", (event, args) => {
+      // eslint-disable-next-line
+      console.log("Searching");
+      that.searching = args;
+    });
+    ipcRenderer.on("stop-loading", () => {
+      that.stopLoading();
+    });
+    ipcRenderer.on("start-loading", () => {
+      that.startLoading();
+      that.searching = null;
+      that.matched = null;
+      that.searched = 0;
+    });
+    ipcRenderer.on("percent-complete", (event, args) => {
+      // eslint-disable-next-line
+      console.log(args);
+    });
+
+    ipcRenderer.on("increment-searched", () => {
+      that.searched++;
     });
   }
 };
@@ -48,6 +82,7 @@ $header-color: #151d2c;
   height: 100%;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 
   &.loading {
     padding-left: 34px;
@@ -93,6 +128,32 @@ $header-color: #151d2c;
     border-left: 10px solid transparent;
     border-bottom: 10px solid transparent;
     animation: spinForwards 1s linear infinite;
+  }
+}
+
+.right {
+  padding-right: 10px;
+}
+
+.progress-bar {
+  display: block;
+  position: relative;
+  height: 24px;
+  width: 100px;
+  background-color: #2f374a;
+
+  span {
+    display: block;
+    height: 24px;
+    width: 0%;
+    background-color: #1b77d2;
+  }
+
+  p {
+    line-height: 24px;
+    position: absolute;
+    width: 100px;
+    left: calc(50% - 50px);
   }
 }
 

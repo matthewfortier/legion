@@ -43,7 +43,9 @@ export default {
     });
 
     ipcRenderer.on("match", (event, args) => {
-      that.matches.push(args);
+      args.forEach(match => {
+        that.matches.push(match);
+      });
     });
   }
 };
