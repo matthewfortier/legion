@@ -5,7 +5,7 @@
         <i v-on:click="stopQuery()" id="stop" class="fas fa-stop" title="Stop"></i>
       </div>
       <div class="center">
-        <span>legion</span>
+        <span>{{ title }}</span>
       </div>
       <div class="right">
         <div v-if="os == 'win32'" class="windows-buttons">
@@ -26,7 +26,8 @@ export default {
   data() {
     return {
       os: process.platform,
-      maximized: false
+      maximized: false,
+      title: "legion"
     };
   },
   methods: {
@@ -59,6 +60,10 @@ export default {
     ipcRenderer.on("platform", (event, args) => {
       that.os = args;
     });
+
+    ipcRenderer.on("set-title-bar", (event, args) => {
+      that.title = args;
+    });
   }
 };
 </script>
@@ -83,6 +88,7 @@ $body-color: lighten(#151d2c, 2);
 
 span {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .left {

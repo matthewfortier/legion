@@ -24,6 +24,8 @@ app.on('ready', () => {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        minHeight: 600,
+        minWidth: 800,
         frame: false,
         titleBarStyle: (process.platform == "darwin") ? "hiddenInset" : "default"
     });

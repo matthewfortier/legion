@@ -53,7 +53,7 @@ export default {
 
     ipcRenderer.on("file", function(event, args) {
       args.forEach(file => {
-        if (!that.files.filter(e => e.filename === file.filename).length > 0) {
+        if (!that.files.filter(e => e.path === file.path).length > 0) {
           that.files.push(file);
         }
       });

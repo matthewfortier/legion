@@ -38,6 +38,15 @@ export default {
         if (match.file == args) {
           that.displayed = match.match;
           that.file = match.path;
+
+          ipcRenderer.send("cross-component", {
+            message: "set-title-bar",
+            data:
+              that.file.replace(/^.*[\\/]/, "") +
+              ` (${that.displayed.length} ${
+                that.displayed.length > 1 ? "matches" : "match"
+              }) -- legion`
+          });
         }
       });
     });

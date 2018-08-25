@@ -23,12 +23,14 @@
         console.log(args.query)
         console.log(args.directory)
 
-        var exts = args.query.split(";");
-        console.log(exts);
+        var expression = args.query
+        if (/^[A-Za-z]+$/.test(args.query)) {
+            expression = `*${args.query}*`
+        }
 
         const files = FileHound.create()
             .paths(args.directory)
-            .ext(exts)
+            .match(expression)
             .find()
 
         files.then((files) => {
