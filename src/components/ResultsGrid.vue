@@ -5,7 +5,7 @@
                 <tr><th>Filename</th><th>Path</th></tr>
             </thead>
             <tbody>
-                <tr v-on:dblclick="openFile(file.path)" v-for="file in files" :key="file.filename" v-on:click="loadResults(file.filename)">
+                <tr v-on:dblclick="openFile(file.path)" v-for="file in files" :key="file.path" v-on:click="loadResults(file.filename)">
                     <td>{{ file.filename }}</td>
                     <td>{{ file.path }}</td>
                 </tr>
@@ -52,6 +52,8 @@ export default {
     });
 
     ipcRenderer.on("file", function(event, args) {
+      // eslint-disable-next-line
+      console.log(args);
       args.forEach(file => {
         if (!that.files.filter(e => e.path === file.path).length > 0) {
           that.files.push(file);

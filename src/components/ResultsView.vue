@@ -5,9 +5,7 @@
             <tbody>
                 <tr v-for="result in displayed" :key="result.number">
                     <td>{{ result.number }}</td>
-                    <td>
-                        {{ result.line }}
-                    </td>
+                    <td v-html="$options.filters.highlight(result.line, contains)"></td>
                 </tr>
             </tbody>
         </table>
@@ -26,7 +24,7 @@ export default {
       file: "",
       matches: [],
       displayed: "",
-      contains: ""
+      contains: "script".replace(/</g,'&lt;').replace(/>/g,'&gt;')
     };
   },
   mounted() {
@@ -37,6 +35,9 @@ export default {
       that.matches.forEach(match => {
         if (match.file == args) {
           that.displayed = match.match;
+          that.displayed.map((match) => match.line = match.line.replace(/</g,'&lt;').replace(/>/g,'&gt;'))
+          // eslint-disable-next-line
+          console.log(that.displayed)
           that.file = match.path;
 
           ipcRenderer.send("cross-component", {
@@ -112,6 +113,10 @@ li {
   height: 26px;
   line-height: 26px;
   background-color: #2c333d;
+}
+
+strong {
+  background-color: rgba(white, 0.4) !important;
 }
 
 .highlightText {

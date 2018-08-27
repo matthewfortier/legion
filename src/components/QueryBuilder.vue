@@ -89,7 +89,7 @@ export default {
     return {
       query: "",
       content: "",
-      directory: "/Users/matthewfortier/Documents/code/legion/"
+      directory: ""
     };
   },
   methods: {

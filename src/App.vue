@@ -67,8 +67,14 @@ body {
   padding: 0;
 
   height: 100vh;
-  background-color: #151d2c;
+  background: transparent;
 }
+
+body {
+  border: 1px solid darken(#1b77d2, 20);
+  border-radius: 5px;
+}
+
 #app {
   font-family: "Karla", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -120,5 +126,10 @@ body {
 .gutter.gutter-vertical {
   background-image: url("./assets/horizontal.png");
   cursor: ns-resize;
+}
+
+.highlightText {
+  background: rgba(#1b77d2, 0.5);
+  color: white;
 }
 </style>
