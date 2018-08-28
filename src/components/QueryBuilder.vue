@@ -94,11 +94,12 @@ export default {
   },
   methods: {
     sendQuery: function() {
-      // eslint-disable-next-line
-      console.log("Send Query");
-      this.files = [];
       ipcRenderer.send("cross-component", "start-loading");
       ipcRenderer.send("cross-component", "clear");
+      ipcRenderer.send("cross-component", {
+        message: "contains",
+        data: this.content
+      });
       ipcRenderer.send("query", {
         content: this.content,
         query: this.query,
@@ -150,7 +151,6 @@ export default {
   align-items: center;
   margin: 10px 10px;
 
-  &:hover,
   &:focus-within {
     border-color: #1b77d2;
   }

@@ -84,6 +84,7 @@ $body-color: lighten(#151d2c, 2);
   user-select: none;
   background-color: $header-color;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  border-bottom: 1px solid lighten(#1b77d2, 10);
 }
 
 span {

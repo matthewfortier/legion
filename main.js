@@ -61,6 +61,7 @@ ipcMain.on("cross-component", function (event, args) {
 })
 
 ipcMain.on("cross-component-process", function (event, args) {
+    console.log(args);
     if (typeof args === "string") {
         mainWindow.webContents.send(args);
     }
@@ -77,10 +78,10 @@ ipcMain.on("stop-query", () => {
 
 ipcMain.on("browse", (event) => {
     var path = dialog.showOpenDialog(mainWindow, {
-        properties: ['openDirectory']
+        properties: ['openDirectory', 'multiSelections']
     })
-
-    event.sender.send("directory", path);
+    console.log(path.join(","));
+    event.sender.send("directory", path.join(","));
 })
 
 ipcMain.on("open", (event, path) => {
@@ -111,4 +112,8 @@ ipcMain.on("start-loading", (event, args) => {
 
 ipcMain.on("platform", () => {
     mainWindow.webContents.send("platform", process.platform)
+})
+
+ipcMain.on("console-log", (event, args) => {
+    console.log(args);
 })

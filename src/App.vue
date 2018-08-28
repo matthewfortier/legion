@@ -2,14 +2,7 @@
   <div id="app">
     <HeaderBar />
     <QueryBuilder />
-    <section class="app-body container-fluid">
-      <div id="results-row" class="row">
-        <div id="results">
-          <ResultsGrid />
-          <ResultsView />
-        </div>
-      </div>
-    </section>
+    <Results />
     <FooterBar />
   </div>
 </template>
@@ -18,36 +11,28 @@
 const $ = require("jquery");
 require("bootstrap/dist/css/bootstrap.css");
 require("bootstrap");
-var Split = require("split.js");
 
 import QueryBuilder from "@/components/QueryBuilder";
 import HeaderBar from "@/components/HeaderBar";
-import ResultsGrid from "@/components/ResultsGrid";
-import ResultsView from "@/components/ResultsView";
 import FooterBar from "@/components/FooterBar";
+import Results from "@/components/Results";
 
 export default {
   name: "app",
   components: {
     QueryBuilder,
     HeaderBar,
-    ResultsGrid,
-    ResultsView,
+    Results,
     FooterBar
   },
   data() {
     return {
-      files: []
+      electron: window.require("electron")
     };
   },
   mounted() {
     $('[data-toggle="tooltip"]').tooltip({
       delay: { show: 1000, hide: 100 }
-    });
-
-    Split([".results-grid", ".results-view"], {
-      sizes: [50, 50],
-      minSize: 300
     });
   }
 };
@@ -101,6 +86,7 @@ body {
   display: flex;
   overflow: hidden;
   width: 100%;
+  border-top: 1px solid lighten(#1b77d2, 10);
 }
 
 .darwin-header {

@@ -4,7 +4,9 @@
     const FileHound = require('filehound');
     const { FileSniffer, asArray } = require('filesniffer');
     var lineNumber = require('line-number');
+    var Glob = require("glob").Glob
 
+    var globs;
     var async = require("async");
     var os = require('os'),
         cpuCount = os.cpus().length;
@@ -20,96 +22,44 @@
     }
 
     ipcRenderer.on("bg-query", (event, args) => {
-        console.log(args.query)
-        console.log(args.directory)
-
+        var dirs = args.directory.split(",");
         var expression = args.query
         if (/^[A-Za-z]+$/.test(args.query)) {
             expression = `*${args.query}*`
         }
 
-        const files = FileHound.create()
-            .paths(args.directory)
-            .match(expression)
-            .find()
+        var options = {
+            cwd: dirs[0],
+            absolute: true
+        }
 
-        files.then((files) => {
+        globs = new Glob(expression, options, (err, matches) => {
+            ipcRenderer.send("console-log", matches);
+        })
 
-            ipcRenderer.send("cross-component-process", {
-                message: "files-searching",
-                data: files.length
-            });
+        globs.on("match", (file) => {
+            var filename = file.replace(/^.*[\\\/]/, '')
+            var path = file;
+            var data = fs.readFileSync(file, 'utf8')
+            var matches = []
 
-            if (args.content == null || args.content == "") {
+            ipcRenderer.send("cross-component-process", "increment-searched");
 
-                var objs = [];
+            var match = lineNumber(data, new RegExp(args.content))
+            if (match.length > 0) {
 
-                files.forEach((file, index) => {
-                    objs.push({
-                        filename: file.replace(/^.*[\\\/]/, ''),
-                        path: file
-                    });
+                matches.push({
+                    path: path,
+                    file: filename,
+                    match: match
                 });
 
-                ipcRenderer.send("cross-component-process", {
-                    message: "files-no-content",
-                    data: objs
-                });
-
-                ipcRenderer.send("cross-component-process", "hide-results-view");
-
-                ipcRenderer.send("stop-loading");
-            } else {
-                var chunks = splitArrayIntoChunks(files, cpuCount)
-                var matchCounter = 0;
-
-                async.every(chunks, function (files, callback) {
-                    var matches = [];
-                    var paths = [];
-                    var filesLength = files.length;
-                    files.forEach((file, index) => {
-                        var filename = file.replace(/^.*[\\\/]/, '')
-                        var path = file;
-                        var data = fs.readFileSync(file, 'utf8')
-
-                        ipcRenderer.send("cross-component-process", "increment-searched");
-
-                        var match = lineNumber(data, new RegExp(args.content))
-                        if (match.length > 0) {
-
-                            paths.push({
-                                filename: filename,
-                                path: path
-                            });
-                            matches.push({
-                                path: path,
-                                file: filename,
-                                match: match
-                            });
-
-                            if (paths.length > Math.ceil(filesLength * .05)) {
-                                ipcRenderer.send("file", paths);
-                                paths = [];
-                            }
-
-                            if (matches.length > Math.ceil(filesLength * .05)) {
-                                ipcRenderer.send("match", matches);
-                                matches = [];
-                            }
-
-                            matchCounter++;
-                        }
-                    })
-                    ipcRenderer.send("match", matches);
-                    ipcRenderer.send("file", paths);
-                    callback(null, true);
-                }, function (err, result) {
-                    if (result) {
-                        ipcRenderer.send("stop-loading");
-                        ipcRenderer.send("match-count", matchCounter);
-                    }
-                });
+                ipcRenderer.send("match", matches);
             }
+        })
+
+        globs.on("end", (matches) => {
+            ipcRenderer.send("stop-loading");
         })
     })
 

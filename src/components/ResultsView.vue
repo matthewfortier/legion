@@ -1,11 +1,14 @@
 <template>
     <div class="results-view" data-simplebar> 
-        <tr><th colspan="2">{{ file }}</th><th></th></tr>
+        <tr><th v-if="this.$parent.displayed" colspan="2">{{ this.$parent.displayed.path }}</th><th></th></tr>
         <table>
-            <tbody>
-                <tr v-for="result in displayed" :key="result.number">
+            <tbody v-if="this.$parent.displayed" >
+                <tr v-for="result in this.$parent.displayed.match" :key="result.number">
                     <td>{{ result.number }}</td>
-                    <td v-html="$options.filters.highlight(result.line, contains)"></td>
+                    <td>
+                      <pre v-if="contains != ''" v-html="$options.filters.highlight(result.line, contains)"></pre>
+                      <pre v-else>{{ result.line }}</pre>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -21,41 +24,13 @@ export default {
   name: "ResultsView",
   data() {
     return {
-      file: "",
-      matches: [],
-      displayed: "",
-      contains: "script".replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      contains: ""
     };
   },
   mounted() {
     var that = this;
-
-    ipcRenderer.on("loadResults", (event, args) => {
-      that.displayed = [];
-      that.matches.forEach(match => {
-        if (match.file == args) {
-          that.displayed = match.match;
-          that.displayed.map((match) => match.line = match.line.replace(/</g,'&lt;').replace(/>/g,'&gt;'))
-          // eslint-disable-next-line
-          console.log(that.displayed)
-          that.file = match.path;
-
-          ipcRenderer.send("cross-component", {
-            message: "set-title-bar",
-            data:
-              that.file.replace(/^.*[\\/]/, "") +
-              ` (${that.displayed.length} ${
-                that.displayed.length > 1 ? "matches" : "match"
-              }) -- legion`
-          });
-        }
-      });
-    });
-
-    ipcRenderer.on("match", (event, args) => {
-      args.forEach(match => {
-        that.matches.push(match);
-      });
+    ipcRenderer.on("contains", (event, args) => {
+      that.contains = args;
     });
   }
 };
@@ -98,6 +73,8 @@ td {
 
 pre {
   color: white;
+  margin: 0;
+  padding: 0;
 }
 
 li {

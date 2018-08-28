@@ -5,9 +5,9 @@
                 <tr><th>Filename</th><th>Path</th></tr>
             </thead>
             <tbody>
-                <tr v-on:dblclick="openFile(file.path)" v-for="file in files" :key="file.path" v-on:click="loadResults(file.filename)">
-                    <td>{{ file.filename }}</td>
-                    <td>{{ file.path }}</td>
+                <tr v-on:click="loadResults(match)" v-on:dblclick="openFile(match.path)" v-for="match in this.$parent.matches" :key="match.path">
+                    <td>{{ match.file }}</td>
+                    <td>{{ match.path }}</td>
                 </tr>
             </tbody>
         </table>
@@ -21,45 +21,13 @@ import "simplebar/dist/simplebar.css";
 
 export default {
   name: "ResultsGrid",
-  data() {
-    return {
-      files: [],
-      matches: []
-    };
-  },
   methods: {
-    loadResults: function(file) {
-      ipcRenderer.send("cross-component", {
-        message: "loadResults",
-        data: file
-      });
+    loadResults: function(match) {
+      this.$parent.displayed = match;
     },
     openFile: path => {
       ipcRenderer.send("open", path);
     }
-  },
-  mounted() {
-    var that = this;
-
-    ipcRenderer.on("clear", function() {
-      that.files = [];
-    });
-
-    ipcRenderer.on("files-no-content", (event, args) => {
-      // eslint-disable-next-line
-      console.log(args);
-      that.files = args;
-    });
-
-    ipcRenderer.on("file", function(event, args) {
-      // eslint-disable-next-line
-      console.log(args);
-      args.forEach(file => {
-        if (!that.files.filter(e => e.path === file.path).length > 0) {
-          that.files.push(file);
-        }
-      });
-    });
   }
 };
 </script>
