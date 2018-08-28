@@ -2,12 +2,16 @@
   "name": "legion",
   "version": "0.1.0",
   "private": true,
-  "main": "main.js",
+  "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron main.js",
+    "start": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron index.js",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "package": "npm run build; npm run package-osx; npm run package-win; npm run package-linux;",
+    "package-osx": "npm run build && electron-packager ./ --platform=darwin --arch=x64 --icon=public/favicon.icns --out=package --asar --overwrite",
+    "package-win": "electron-packager ./ --platform=win32 --arch=ia32 --icon=public/favicon.ico --out=package --asar --overwrite=force",
+    "package-linux": "electron-packager ./ --platform=linux --arch=ia32 --icon=public/favicon.ico --out=package --asar --overwrite=force"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.2.0",
@@ -31,6 +35,7 @@
     "globby": "^8.0.1",
     "i": "^0.3.6",
     "jquery": "^3.3.1",
+    "line-number": "^0.1.0",
     "node-find-files": "0.0.4",
     "npm": "^6.4.0",
     "popper.js": "^1.14.4",
@@ -48,6 +53,7 @@
     "@vue/cli-service": "^3.0.0",
     "@vue/eslint-config-prettier": "^3.0.1",
     "electron": "^2.0.7",
+    "electron-packager": "^12.1.1",
     "line-number": "^0.1.0",
     "mark.js": "^8.11.1",
     "node-sass": "^4.9.0",
