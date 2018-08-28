@@ -5,11 +5,16 @@ const ipcMain = electron.ipcMain
 const shell = electron.shell
 const dialog = electron.dialog
 
+const fs = require("file-system");
+const FileHound = require('filehound');
+const { FileSniffer, asArray } = require('filesniffer');
+var lineNumber = require('line-number');
+
 let url
 if (process.env.NODE_ENV === 'DEV') {
     url = 'http://localhost:8080/'
 } else {
-    url = `file://${__dirname}/index.html`
+    url = `file://${process.cwd()}/dist/index.html`
 }
 
 let mainWindow
@@ -24,21 +29,16 @@ app.on('ready', () => {
         frame: false,
         titleBarStyle: (process.platform == "darwin") ? "hiddenInset" : "default"
     });
-    mainWindow.loadURL("http://localhost:8080/")
-    mainWindow.webContents.openDevTools();
+    mainWindow.loadURL(url)
 
     mainWindow.webContents.send("process", process.platform)
 
     createBackgroundProcess();
 })
 
-app.on("window-all-closed", () => {
-    app.quit();
-});
-
 function createBackgroundProcess() {
     backgroundWindow = new BrowserWindow({ "show": false })
-    backgroundWindow.loadURL(`file://${__dirname}/background.html`)
+    backgroundWindow.loadURL(`file://${process.cwd()}/background.html`)
     backgroundWindow.on("ready", () => {
         console.log("Background process ready")
     })
