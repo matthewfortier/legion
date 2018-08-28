@@ -1,5 +1,6 @@
 <script type="text/javascript">
     const { ipcRenderer } = require('electron');
+    const remote = require('electron').remote;
     const fs = require("file-system");
     const FileHound = require('filehound');
     const { FileSniffer, asArray } = require('filesniffer');
@@ -30,7 +31,9 @@
 
         var options = {
             cwd: dirs[0],
-            absolute: true
+            absolute: true,
+            mark: true,
+            nounique: false
         }
 
         globs = new Glob(expression, options, (err, matches) => {
@@ -45,13 +48,13 @@
 
             ipcRenderer.send("cross-component-process", "increment-searched");
 
-            var match = lineNumber(data, new RegExp(args.content))
-            if (match.length > 0) {
+            //var match = lineNumber(data, new RegExp(args.content))
+            var match = data.test(new RegExp(args.content, 'iu'))
+            if (match) {
 
                 matches.push({
                     path: path,
-                    file: filename,
-                    match: match
+                    file: filename
                 });
 
                 ipcRenderer.send("match", matches);
