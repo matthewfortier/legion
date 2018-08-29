@@ -14,6 +14,7 @@
             <div class="center"></div>
             <div class="right">
               <span>{{ matched }} found ({{ matchedSize | bytesToSize }})</span>
+              <span class="divider"></span>
               <span>{{ searched }} searched ({{ searchedSize | bytesToSize }})</span>
             </div>
         </div>
@@ -96,6 +97,15 @@ $header-color: #151d2c;
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  .divider {
+    display: block;
+    width: 0px;
+    line-height: 31px;
+    margin-top: 6px;
+    height: 18px;
+    border-left: 1px solid #2f374a;
+  }
 }
 
 .loader {
