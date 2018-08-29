@@ -5,65 +5,89 @@
     const FileHound = require('filehound');
     const { FileSniffer, asArray } = require('filesniffer');
     var lineNumber = require('line-number');
-    var Glob = require("glob").Glob
+    var Glob = require("glob").Glob;
 
     var globs;
     var async = require("async");
     var os = require('os'),
         cpuCount = os.cpus().length;
 
+    var server = require('http').createServer();
+    var io = require('socket.io')(server);
+    io.on('connection', (client) => {
+
+        var content;
+
+        client.on("load-results", (path) => {
+            var data = fs.readFileSync(path, 'utf8')
+            var filename = path.replace(/^.*[\\\/]/, '')
+            var match = lineNumber(data, new RegExp(content, "iu"))
+            io.emit("result", {
+                path: path,
+                file: filename,
+                match: match
+            });
+        })
+
+        client.on("pause", () => {
+            ipcRenderer.send("console-log", "pause");
+            globs.pause();
+        });
+
+        client.on("query", (args) => {
+            var dirs = args.directory.split(",");
+            var expression = args.query;
+            if (/^[A-Za-z]+$/.test(args.query)) {
+                expression = `*${args.query}*`;
+            }
+
+            content = args.content;
+
+            var options = {
+                cwd: dirs[0],
+                absolute: true,
+                mark: true,
+                nounique: false
+            };
+
+            globs = new Glob(expression, options, () => {
+                io.emit("stop-loading");
+            });
+
+            globs.on("match", (file) => {
+                var filename = file.replace(/^.*[\\\/]/, '');
+                var path = file;
+                var data = fs.readFileSync(file, 'utf8');
+                var stats = fs.statSync(file);
+
+                io.emit("increment-searched", stats.size);
+
+                var match = data.search(new RegExp(args.content, "iu"));
+                if (match > -1) {
+                    io.emit("increment-matched", stats.size);
+                    io.emit("match", {
+                        path: path,
+                        file: filename,
+                        directory: dirs[0],
+                        stats: stats
+                    });
+                }
+            });
+
+            globs.on("end", (matches) => {
+                io.emit("stop-loading");
+            });
+        })
+    });
+    io.listen(9090);
 
     function splitArrayIntoChunks(arr, chunkLen) {
-        var chunkList = []
-        var chunkCount = Math.ceil(arr.length / chunkLen)
+        var chunkList = [];
+        var chunkCount = Math.ceil(arr.length / chunkLen);
         for (var i = 0; i < chunkCount; i++) {
-            chunkList.push(arr.splice(0, chunkLen))
+            chunkList.push(arr.splice(0, chunkLen));
         }
-        return chunkList
+        return chunkList;
     }
-
-    ipcRenderer.on("bg-query", (event, args) => {
-        var dirs = args.directory.split(",");
-        var expression = args.query
-        if (/^[A-Za-z]+$/.test(args.query)) {
-            expression = `*${args.query}*`
-        }
-
-        var options = {
-            cwd: dirs[0],
-            absolute: true,
-            mark: true,
-            nounique: false
-        }
-
-        globs = new Glob(expression, options, (err, matches) => {
-            ipcRenderer.send("console-log", matches);
-        })
-
-        globs.on("match", (file) => {
-            var filename = file.replace(/^.*[\\\/]/, '')
-            var path = file;
-            var data = fs.readFileSync(file, 'utf8')
-            var matches = []
-
-            ipcRenderer.send("cross-component-process", "increment-searched");
-
-            //var match = lineNumber(data, new RegExp(args.content))
-            var match = data.test(new RegExp(args.content, 'iu'))
-            if (match) {
-
-                matches.push({
-                    path: path,
-                    file: filename
-                });
-
-                ipcRenderer.send("match", matches);
-            }
-        })
-
-        globs.on("end", (matches) => {
-            ipcRenderer.send("stop-loading");
-        })
-    })
 
 </script>

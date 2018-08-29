@@ -6,16 +6,15 @@
                 <div></div>
             </div>
         </div>
-        <div v-bind:class="loading ? 'loading' : ''" class="footer-bar-content">
-            <div class="left">
+        <div class="footer-bar-content">
+            <div v-bind:class="loading ? 'loading' : ''" class="left">
               <div v-if="loading" class="loading-message">Searching {{searching}} files...</div>
+              <div v-else class="loading-message">Ready</div>
             </div>
             <div class="center"></div>
             <div class="right">
-              <div class="progress-bar">
-                <p>{{ searched }} / {{ searching }}</p>
-                <span v-bind:style="{ width: (searched / searching) * 100 + '%' }"></span>
-              </div>
+              <span>{{ matched }} found ({{ matchedSize | bytesToSize }})</span>
+              <span>{{ searched }} searched ({{ searchedSize | bytesToSize }})</span>
             </div>
         </div>
     </div>
@@ -31,7 +30,9 @@ export default {
       loading: false,
       searching: null,
       searched: 0,
-      matched: null
+      searchedSize: 0,
+      matched: null,
+      matchedSize: 0
     };
   },
   methods: {
@@ -49,6 +50,9 @@ export default {
       console.log("Searching");
       that.searching = args;
     });
+    this.$socket.on("stop-loading", () => {
+      that.stopLoading();
+    });
     ipcRenderer.on("stop-loading", () => {
       that.stopLoading();
     });
@@ -57,14 +61,22 @@ export default {
       that.searching = null;
       that.matched = null;
       that.searched = 0;
+      that.matched = 0;
+      that.searchedSize = 0;
+      that.matchedSize = 0;
     });
     ipcRenderer.on("percent-complete", (event, args) => {
       // eslint-disable-next-line
       console.log(args);
     });
 
-    ipcRenderer.on("increment-searched", () => {
+    this.$socket.on("increment-searched", size => {
       that.searched++;
+      that.searchedSize += size;
+    });
+    this.$socket.on("increment-matched", size => {
+      that.matched++;
+      that.matchedSize += size;
     });
   }
 };
@@ -79,22 +91,19 @@ $header-color: #151d2c;
 
 .footer-bar-content {
   font-size: 12px;
+  line-height: 31px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  &.loading {
-    padding-left: 34px;
-  }
 }
 
 .loader {
   height: 100px;
   width: 100px;
   transform: scale(0.2);
-  margin-top: -34px;
-  margin-left: -34px;
+  margin-top: -36px;
+  margin-left: -32px;
   position: absolute;
 }
 
@@ -131,8 +140,24 @@ $header-color: #151d2c;
   }
 }
 
+.left {
+  padding-left: 10px;
+  width: 33vw;
+
+  &.loading {
+    padding-left: 34px;
+  }
+}
+
 .right {
   padding-right: 10px;
+  width: 33vw;
+  display: flex;
+  justify-content: flex-end;
+
+  span {
+    margin-left: 15px;
+  }
 }
 
 .progress-bar {

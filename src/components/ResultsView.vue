@@ -1,9 +1,9 @@
 <template>
     <div class="results-view" data-simplebar> 
-        <tr><th v-if="this.$parent.displayed" colspan="2">{{ this.$parent.displayed.path }}</th><th></th></tr>
+        <tr><th v-if="this.displayed" colspan="2">{{ this.displayed.path }}</th><th></th></tr>
         <table>
-            <tbody v-if="this.$parent.displayed" >
-                <tr v-for="result in this.$parent.displayed.match" :key="result.number">
+            <tbody v-if="this.displayed" >
+                <tr v-for="result in this.displayed.match" :key="result.number">
                     <td>{{ result.number }}</td>
                     <td>
                       <pre v-if="contains != ''" v-html="$options.filters.highlight(result.line, contains)"></pre>
@@ -22,9 +22,11 @@ import "simplebar/dist/simplebar.css";
 
 export default {
   name: "ResultsView",
+  props: ["displayed"],
   data() {
     return {
-      contains: ""
+      contains: "",
+      match: this.displayed
     };
   },
   mounted() {

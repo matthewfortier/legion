@@ -1,14 +1,27 @@
 import Vue from "vue";
 import App from "./App.vue";
 import escape from "escape-html";
+import io from "socket.io-client";
 
 Vue.config.productionTip = false;
+Vue.prototype.$socket = io("localhost:9090");
 
 Vue.filter("highlight", (word, query) => {
   var check = new RegExp(escape(query), "ig");
-  return escape(word).toString().replace(check, matchedText => {
-    return "<span class='highlightText'>" + matchedText + "</span>";
-  });
+  return escape(word)
+    .toString()
+    .replace(check, matchedText => {
+      return "<span class='highlightText'>" + matchedText + "</span>";
+    });
+});
+
+Vue.filter("bytesToSize", (bytes, decimals = 2) => {
+  if (bytes == 0) return "0 Bytes";
+  var k = 1024,
+    dm = decimals || 2,
+    sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+    i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 });
 
 new Vue({

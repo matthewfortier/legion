@@ -87,9 +87,9 @@ export default {
   name: "QueryBuilder",
   data() {
     return {
-      query: "",
-      content: "",
-      directory: ""
+      query: "**/*.html",
+      content: "query",
+      directory: "/Users/matthewfortier/Documents/code/legion"
     };
   },
   methods: {
@@ -100,7 +100,7 @@ export default {
         message: "contains",
         data: this.content
       });
-      ipcRenderer.send("query", {
+      this.$socket.emit("query", {
         content: this.content,
         query: this.query,
         directory: this.directory

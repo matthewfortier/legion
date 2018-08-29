@@ -2,12 +2,13 @@
     <div class="results-grid" data-simplebar>
         <table id="results-table">
             <thead>
-                <tr><th>Filename</th><th>Path</th></tr>
+                <tr><th>Filename</th><th>Path</th><th>Size</th></tr>
             </thead>
             <tbody>
-                <tr v-on:click="loadResults(match)" v-on:dblclick="openFile(match.path)" v-for="match in this.$parent.matches" :key="match.path">
+                <tr v-on:click="loadResults(match.path)" v-on:dblclick="openFile(match.path)" :key="match.path" v-for="match in this.$parent.matches">
                     <td>{{ match.file }}</td>
-                    <td>{{ match.path }}</td>
+                    <td>{{ match.path.replace(match.directory, "").replace(/^\//, "").replace(/^\\/, "") }}</td>
+                    <td>{{ match.stats.size | bytesToSize }}</td>
                 </tr>
             </tbody>
         </table>
@@ -22,8 +23,8 @@ import "simplebar/dist/simplebar.css";
 export default {
   name: "ResultsGrid",
   methods: {
-    loadResults: function(match) {
-      this.$parent.displayed = match;
+    loadResults: function(path) {
+      this.$socket.emit("load-results", path);
     },
     openFile: path => {
       ipcRenderer.send("open", path);
@@ -46,12 +47,23 @@ table {
 }
 
 th {
+  white-space: nowrap;
   background-color: #2c333d;
+  padding-right: 15px;
+
+  &:nth-child(n + 3) {
+    text-align: right;
+  }
 }
 
 td {
   white-space: nowrap;
   border-top: 1px solid #2f374a;
+  padding-right: 15px;
+
+  &:nth-child(n + 3) {
+    text-align: right;
+  }
 }
 
 tbody tr:hover {

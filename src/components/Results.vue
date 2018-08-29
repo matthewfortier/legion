@@ -3,7 +3,7 @@
       <div id="results-row" class="row">
         <div id="results">
           <ResultsGrid />
-          <ResultsView />
+          <ResultsView :displayed="displayed" />
         </div>
       </div>
     </section>
@@ -44,10 +44,19 @@ export default {
       sizes: [50, 50],
       minSize: 300
     });
+
+    this.$socket.on("match", data => {
+      that.matches.push(data);
+    });
+
+    this.$socket.on("result", data => {
+      // eslint-disable-next-line
+      console.log(data);
+      that.displayed = data;
+    });
   }
 };
 </script>
 
 <style lang="scss" scoped>
 </style>
-
