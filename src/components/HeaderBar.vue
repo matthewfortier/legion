@@ -1,9 +1,9 @@
 <template>
     <div class="header-bar">
       <div v-bind:class="(os == 'darwin' && !maximized) ? 'darwin' : ''" class="left">
-        <i v-on:click="runQuery()" id="run" class="fas fa-play" title="Run Query"></i>
-        <i v-on:click="pauseQuery()" id="pause" class="fas fa-pause" title="Pause"></i>
-        <i v-on:click="stopQuery()" id="stop" class="fas fa-stop" title="Stop"></i>
+        <i v-on:click="runQuery()" id="run" class="fas fa-play" data-toggle="tooltip" data-placement="bottom" title="Run Query"></i>
+        <i v-on:click="pauseQuery()" id="pause" class="fas fa-pause" data-toggle="tooltip" data-placement="bottom" title="Pause"></i>
+        <i v-on:click="stopQuery()" id="stop" class="fas fa-stop" data-toggle="tooltip" data-placement="bottom" title="Stop"></i>
       </div>
       <div class="center">
         <span>{{ title }}</span>

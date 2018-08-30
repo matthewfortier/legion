@@ -2,25 +2,47 @@
     <div id="query-builder">
 
       <div class="inputs">
-         <div class="legion-input">
-          <span>Filename:</span>
-          <input v-model="query" type="text" placeholder="Glob patterns...">
-          <i v-on:click="openGlobHelp()" id="globHelp" class="fas fa-question" data-toggle="tooltip modal" data-placement="bottom" data-target="#glob-modal" title="Help"></i>
-        </div>
-
         <div class="legion-input">
-          <span>Containing:</span>
-          <input v-model="content" type="text" placeholder="Containing text or expression...">
-          <i v-on:click="openRegexHelp()" id="regexHelp" class="fas fa-question" data-toggle="tooltip modal" data-placement="bottom" data-target="#" title="Help"></i>
-        </div>
-
-        <div class="legion-input">
-          <span>Directory:</span>
-          <input v-model="directory" type="text" placeholder="Root directory...">
+          <div class="legion-input-content">
+            <span class="label">Directory:</span>
+            <input v-model="directory" type="text" placeholder="Root directory...">
+          </div>
           <i v-on:click="browse()" id="loadPath" class="fas fa-folder-open" data-toggle="tooltip" data-placement="bottom" title="Browse..."></i>
         </div>
-      </div>
+      
 
+        <div class="legion-input">
+          <div class="legion-input-content">
+            <span class="label">Filename:</span>
+            <input v-model="query" type="text" placeholder="Glob patterns...">
+          </div>
+          <i data-toggle="tooltip" data-placement="bottom" title="Glob Help" v-on:click="openGlobHelp()" id="globHelp" class="fas fa-question" data-target="#glob-modal"></i>
+        </div>
+
+        <div class="legion-input">
+          <div class="legion-input-content">
+            <span class="label">Containing:</span>
+            <span class="regex">/</span>
+            <!-- <input v-model="content" type="text" placeholder="Containing text or expression..."> -->
+            <span v-contenteditable:content="true" @paste="paste($event)" @keydown="$event.keyCode === 13 ? $event.preventDefault() : false" class="input-span" contenteditable="true"></span>
+            <span class="regex">/</span>
+            <span v-show="this.ignore" class="regex">i</span>
+            <span v-show="this.global" class="regex">g</span>
+            <span v-show="this.multiline" class="regex">m</span>
+            <span v-show="this.unicode" class="regex">u</span>
+            <span v-show="this.sticky" class="regex">y</span>
+          </div>
+          <div class="regex-flags">
+            <span class="flags-label">Flags: </span>
+            <span data-toggle="tooltip" data-placement="bottom" title="Ignore" @click="setFlag($event)" v-bind:class="(this.ignore) ? 'selected' : ''" class="flag">i</span>
+            <span data-toggle="tooltip" data-placement="bottom" title="Global" @click="setFlag($event)" v-bind:class="(this.global) ? 'selected' : ''" class="flag">g</span>
+            <span data-toggle="tooltip" data-placement="bottom" title="Multiline" @click="setFlag($event)" v-bind:class="(this.multiline) ? 'selected' : ''" class="flag">m</span>
+            <span data-toggle="tooltip" data-placement="bottom" title="Unicode" @click="setFlag($event)" v-bind:class="(this.unicode) ? 'selected' : ''" class="flag">u</span>
+            <span data-toggle="tooltip" data-placement="bottom" title="Sticky" @click="setFlag($event)" v-bind:class="(this.sticky) ? 'selected' : ''" class="flag">y</span>
+            <i data-toggle="tooltip modal" data-placement="bottom" title="Regex Builder" v-on:click="openRegexHelp()" id="regexHelp" class="fas fa-question" data-target="#"></i>
+          </div>
+        </div>
+      </div>
 
       <div id="glob-modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
@@ -82,14 +104,22 @@
 <script>
 const { ipcRenderer } = window.require("electron");
 const $ = require("jquery");
+import "simplebar"; // or "import SimpleBar from 'simplebar';" if you want to use it manually.
+import "simplebar/dist/simplebar.css";
 
 export default {
   name: "QueryBuilder",
   data() {
     return {
       query: "**/*.html",
-      content: "query",
-      directory: "/Users/matthewfortier/Documents/code/legion"
+      content: "",
+      directory: "/Users/matthewfortier/Documents/code/legion",
+      flags: "",
+      ignore: false,
+      global: false,
+      multiline: false,
+      unicode: false,
+      sticky: false
     };
   },
   methods: {
@@ -101,10 +131,45 @@ export default {
         data: this.content
       });
       this.$socket.emit("query", {
-        content: this.content,
+        content: {
+          content: this.content,
+          flags: this.flags
+        },
         query: this.query,
         directory: this.directory
       });
+    },
+    paste: function(e) {
+      e.preventDefault();
+      var text = e.clipboardData.getData("text/plain");
+      document.execCommand("insertHTML", false, text);
+    },
+    updateContains: function(text) {
+      this.content = text;
+    },
+    setFlag: function(event) {
+      switch (event.target.innerText) {
+        case "i":
+          this.ignore = !this.ignore;
+          break;
+        case "g":
+          this.global = !this.global;
+          break;
+        case "m":
+          this.multiline = !this.multiline;
+          break;
+        case "u":
+          this.unicode = !this.unicode;
+          break;
+        case "y":
+          this.sticky = !this.sticky;
+          break;
+      }
+      this.flags = `${this.ignore ? "i" : ""}${this.global ? "g" : ""}${
+        this.multiline ? "m" : ""
+      }${this.unicode ? "u" : ""}${this.sticky ? "y" : ""}`;
+      // eslint-disable-next-line
+      console.log(this.flags);
     },
     browse: () => {
       ipcRenderer.send("browse");
@@ -150,12 +215,14 @@ export default {
   display: flex;
   align-items: center;
   margin: 10px 10px;
+  display: flex;
+  justify-content: space-between;
 
   &:focus-within {
     border-color: #1b77d2;
   }
 
-  span {
+  .label {
     color: #1b77d2;
     font-weight: bold;
     margin: 0 10px;
@@ -163,12 +230,74 @@ export default {
     user-select: none;
   }
 
+  .legion-input-content {
+    overflow-x: auto;
+    flex: 1;
+    white-space: nowrap;
+  }
+
+  .input-span {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: #1b77d2;
+    margin: 0;
+    min-width: 20px;
+    padding: 0 5px;
+    white-space: nowrap;
+    width: calc(100% - 400px);
+  }
+
+  .regex {
+    font-weight: 900;
+    color: lighten(#151d2c, 10);
+  }
+
   input {
     background-color: transparent;
     border: none;
     outline: none;
     color: #1b77d2;
-    width: 100%;
+    width: calc(100% - 100px);
+  }
+
+  .regex-flags {
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    .flags-label {
+      font-size: 0.8em;
+      color: #1b77d2;
+      opacity: 0.6;
+      margin: 0 5px;
+    }
+
+    .flag {
+      display: inline-block;
+      color: #1b77d2;
+      cursor: pointer;
+      font-weight: bold;
+      height: 25px;
+      width: 25px;
+      line-height: 25px;
+      border-radius: 3px;
+      margin: 0 2.5px;
+      user-select: none;
+
+      i {
+        line-height: 36px;
+      }
+
+      &.selected {
+        background-color: lighten(#151d2c, 10);
+        color: #0c1520;
+      }
+
+      &:hover {
+        background-color: #0f4478;
+      }
+    }
   }
 
   i {
@@ -176,6 +305,8 @@ export default {
     margin-left: 10px;
     color: #1b77d2;
     cursor: pointer;
+    justify-content: flex-end;
+    line-height: 36px;
   }
 }
 

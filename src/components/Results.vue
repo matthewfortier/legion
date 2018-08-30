@@ -46,7 +46,10 @@ export default {
     });
 
     this.$socket.on("match", data => {
-      that.matches.push(data);
+      // eslint-disable-next-line
+      console.log(data);
+      var temp = JSON.parse(data);
+      that.matches.push(temp);
     });
 
     this.$socket.on("result", data => {

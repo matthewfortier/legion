@@ -11,11 +11,13 @@
               <div v-if="loading" class="loading-message">Searching {{searching}} files...</div>
               <div v-else class="loading-message">Ready</div>
             </div>
-            <div class="center"></div>
+            <div class="center">
+              <span v-show="time">{{ time }} seconds</span>
+            </div>
             <div class="right">
-              <span>{{ matched }} found ({{ matchedSize | bytesToSize }})</span>
+              <span>{{ matched }} files found ({{ matchedSize | bytesToSize }})</span>
               <span class="divider"></span>
-              <span>{{ searched }} searched ({{ searchedSize | bytesToSize }})</span>
+              <span>{{ searched }} files searched ({{ searchedSize | bytesToSize }})</span>
             </div>
         </div>
     </div>
@@ -33,7 +35,8 @@ export default {
       searched: 0,
       searchedSize: 0,
       matched: null,
-      matchedSize: 0
+      matchedSize: 0,
+      time: null
     };
   },
   methods: {
@@ -51,7 +54,8 @@ export default {
       console.log("Searching");
       that.searching = args;
     });
-    this.$socket.on("stop-loading", () => {
+    this.$socket.on("stop-loading", time => {
+      that.time = time;
       that.stopLoading();
     });
     ipcRenderer.on("stop-loading", () => {
@@ -65,6 +69,7 @@ export default {
       that.matched = 0;
       that.searchedSize = 0;
       that.matchedSize = 0;
+      that.time = null;
     });
     ipcRenderer.on("percent-complete", (event, args) => {
       // eslint-disable-next-line

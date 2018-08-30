@@ -11,17 +11,19 @@
     var async = require("async");
     var os = require('os'),
         cpuCount = os.cpus().length;
+    const hirestime = require('hirestime');
 
     var server = require('http').createServer();
     var io = require('socket.io')(server);
     io.on('connection', (client) => {
 
         var content;
+        var flags;
 
         client.on("load-results", (path) => {
             var data = fs.readFileSync(path, 'utf8')
             var filename = path.replace(/^.*[\\\/]/, '')
-            var match = lineNumber(data, new RegExp(content, "iu"))
+            var match = lineNumber(data, new RegExp(content, flags))
             io.emit("result", {
                 path: path,
                 file: filename,
@@ -35,47 +37,54 @@
         });
 
         client.on("query", (args) => {
+            const getElapsed = hirestime()
+
             var dirs = args.directory.split(",");
             var expression = args.query;
             if (/^[A-Za-z]+$/.test(args.query)) {
                 expression = `*${args.query}*`;
             }
 
-            content = args.content;
+            content = args.content.content;
+            flags = args.content.flags;
 
             var options = {
                 cwd: dirs[0],
-                absolute: true,
-                mark: true,
-                nounique: false
+                absolute: true
             };
 
-            globs = new Glob(expression, options, () => {
-                io.emit("stop-loading");
-            });
-
-            globs.on("match", (file) => {
+            var q = async.queue(function (file, callback) {
                 var filename = file.replace(/^.*[\\\/]/, '');
                 var path = file;
-                var data = fs.readFileSync(file, 'utf8');
-                var stats = fs.statSync(file);
+                fs.readFile(file, 'utf8', (err, data) => {
+                    if (err) callback();
 
-                io.emit("increment-searched", stats.size);
+                    var stats = fs.statSync(file);
+                    var match = data.search(new RegExp(content, flags));
+                    if (match > -1) {
+                        io.emit("increment-matched", stats.size);
+                        var buf = JSON.stringify({
+                            path: path,
+                            file: filename,
+                            directory: dirs[0],
+                            stats: stats
+                        });
+                        io.emit("match", buf);
+                    }
+                    io.emit("increment-searched", stats.size);
+                    callback();
+                });
+            }, 200);
 
-                var match = data.search(new RegExp(args.content, "iu"));
-                if (match > -1) {
-                    io.emit("increment-matched", stats.size);
-                    io.emit("match", {
-                        path: path,
-                        file: filename,
-                        directory: dirs[0],
-                        stats: stats
-                    });
-                }
-            });
+            // assign a callback
+            q.drain = function () {
+                io.emit("stop-loading", getElapsed(hirestime.S));
+            };
 
-            globs.on("end", (matches) => {
-                io.emit("stop-loading");
+            globs = new Glob(expression, options);
+
+            globs.on("match", (file) => {
+                q.push(file);
             });
         })
     });
