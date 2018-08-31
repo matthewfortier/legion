@@ -34,12 +34,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../themes.scss";
+
 .results-grid {
   overflow-x: scroll;
-}
-
-.simplebar-scrollbar:before {
-  background: lighten(#1b77d2, 10);
 }
 
 table {
@@ -48,8 +46,13 @@ table {
 
 th {
   white-space: nowrap;
-  background-color: #2c333d;
+  background-color: $results-grid-header-color;
   padding-right: 15px;
+
+  .light-theme & {
+    background-color: white;
+    color: black;
+  }
 
   &:nth-child(n + 3) {
     text-align: right;
@@ -58,8 +61,13 @@ th {
 
 td {
   white-space: nowrap;
-  border-top: 1px solid #2f374a;
+  border-top: 1px solid $td-border-color;
   padding-right: 15px;
+
+  .light-theme & {
+    border-color: $td-border-color-light;
+    color: black;
+  }
 
   &:nth-child(n + 3) {
     text-align: right;
@@ -67,7 +75,7 @@ td {
 }
 
 tbody tr:hover {
-  background-color: lighten(#1b77d2, 10);
+  background-color: $accent-color-light;
   cursor: pointer;
 }
 </style>

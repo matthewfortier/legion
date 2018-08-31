@@ -2,8 +2,8 @@ import Vue from "vue";
 import App from "./App.vue";
 import escape from "escape-html";
 import io from "socket.io-client";
-import contenteditableDirective from 'vue-contenteditable-directive'
-Vue.use(contenteditableDirective)
+import contenteditableDirective from "vue-contenteditable-directive";
+Vue.use(contenteditableDirective);
 
 Vue.config.productionTip = false;
 Vue.prototype.$socket = io("localhost:9090");

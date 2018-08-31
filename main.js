@@ -29,6 +29,8 @@ app.on("ready", () => {
   mainWindow.webContents.send("process", process.platform);
 
   createBackgroundProcess();
+
+  require("./menu");
 });
 
 function createBackgroundProcess() {
@@ -43,7 +45,7 @@ function createBackgroundProcess() {
   return backgroundWindow;
 }
 
-ipcMain.on("cross-component", function(event, args) {
+ipcMain.on("cross-component", function (event, args) {
   if (typeof args === "string") {
     event.sender.send(args);
   } else {
@@ -51,7 +53,7 @@ ipcMain.on("cross-component", function(event, args) {
   }
 });
 
-ipcMain.on("cross-component-process", function(event, args) {
+ipcMain.on("cross-component-process", function (event, args) {
   if (typeof args === "string") {
     mainWindow.webContents.send(args);
   } else {
@@ -78,7 +80,7 @@ ipcMain.on("open", (event, path) => {
   shell.openItem(path);
 });
 
-ipcMain.on("query", function(event, args) {
+ipcMain.on("query", function (event, args) {
   console.log("bg-query");
   backgroundWindow.webContents.send("bg-query", args);
 });

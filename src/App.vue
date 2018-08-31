@@ -34,6 +34,10 @@ export default {
     $('[data-toggle="tooltip"]').tooltip({
       delay: { show: 1000, hide: 100 }
     });
+
+    this.electron.ipcRenderer.on("toggle-light", () => {
+      document.documentElement.classList.toggle("light-theme");
+    });
   }
 };
 </script>
@@ -41,9 +45,7 @@ export default {
 <style lang="scss">
 @import "../node_modules/@fortawesome/fontawesome-free/css/all.min.css";
 @import url("https://fonts.googleapis.com/css?family=Karla");
-
-$header-color: #151d2c;
-$body-color: lighten(#151d2c, 2);
+@import "./themes.scss";
 
 html,
 body {
@@ -56,7 +58,7 @@ body {
 }
 
 body {
-  border: 1px solid darken(#1b77d2, 20);
+  border: 1px solid $body-border-color;
   border-radius: 5px;
 }
 
@@ -71,6 +73,10 @@ body {
   flex-direction: column;
 
   background-color: $body-color;
+
+  .light-theme & {
+    background-color: $body-color-light;
+  }
 }
 
 .app-body {
@@ -86,7 +92,12 @@ body {
   display: flex;
   overflow: hidden;
   width: 100%;
-  border-top: 1px solid lighten(#1b77d2, 10);
+  border-top: 1px solid $accent-color-light;
+
+  .light-theme & {
+    border: none;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.12), 0 -1px 2px rgba(0, 0, 0, 0.24);
+  }
 }
 
 .darwin-header {
@@ -98,10 +109,14 @@ body {
 }
 
 .gutter {
-  background-color: #2f374a;
+  background-color: $gutter-color;
 
   background-repeat: no-repeat;
   background-position: 50%;
+
+  .light-theme & {
+    background-color: $gutter-color-light;
+  }
 }
 
 .gutter.gutter-horizontal {
@@ -115,7 +130,11 @@ body {
 }
 
 .highlightText {
-  background: rgba(#1b77d2, 0.5);
+  background: $match-highlight-text-color;
   color: white;
+
+  .light-theme & {
+    color: black;
+  }
 }
 </style>

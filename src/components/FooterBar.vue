@@ -89,10 +89,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$header-color: #151d2c;
+@import "../themes.scss";
+
 .footer-bar {
   background-color: $header-color;
   height: 31px;
+
+  .light-theme & {
+    background-color: white;
+    color: black;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.12), 0 -1px 2px rgba(0, 0, 0, 0.24);
+  }
 }
 
 .footer-bar-content {
@@ -134,7 +141,7 @@ $header-color: #151d2c;
     height: 100%;
     width: 100%;
     border-radius: 50%;
-    border: 10px solid #1b77d2;
+    border: 10px solid $accent-color;
     border-left: 10px solid transparent;
     animation: spinForwards 2s linear infinite;
   }
@@ -148,7 +155,7 @@ $header-color: #151d2c;
     height: 80%;
     width: 80%;
     border-radius: 50%;
-    border: 10px solid lighten(#1b77d2, 10);
+    border: 10px solid $accent-color-light;
     border-left: 10px solid transparent;
     border-bottom: 10px solid transparent;
     animation: spinForwards 1s linear infinite;
@@ -172,28 +179,6 @@ $header-color: #151d2c;
 
   span {
     margin-left: 15px;
-  }
-}
-
-.progress-bar {
-  display: block;
-  position: relative;
-  height: 24px;
-  width: 100px;
-  background-color: #2f374a;
-
-  span {
-    display: block;
-    height: 24px;
-    width: 0%;
-    background-color: #1b77d2;
-  }
-
-  p {
-    line-height: 24px;
-    position: absolute;
-    width: 100px;
-    left: calc(50% - 50px);
   }
 }
 

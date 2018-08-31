@@ -203,14 +203,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../themes.scss";
+
 #query-builder {
   display: block;
-  background-color: #0c1520;
+  background-color: $query-builder-background;
+
+  .light-theme & {
+    background-color: $query-builder-background-light;
+  }
 }
 
 .legion-input {
   height: 36px;
-  border: 1px solid #2f374a;
+  border: 1px solid $input-border-color;
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -218,12 +224,17 @@ export default {
   display: flex;
   justify-content: space-between;
 
+  .light-theme & {
+    border-color: $accent-color;
+    background-color: white;
+  }
+
   &:focus-within {
-    border-color: #1b77d2;
+    border-color: $accent-color;
   }
 
   .label {
-    color: #1b77d2;
+    color: $accent-color;
     font-weight: bold;
     margin: 0 10px;
     text-transform: uppercase;
@@ -240,7 +251,7 @@ export default {
     background-color: transparent;
     border: none;
     outline: none;
-    color: #1b77d2;
+    color: $accent-color;
     margin: 0;
     min-width: 20px;
     padding: 0 5px;
@@ -250,14 +261,18 @@ export default {
 
   .regex {
     font-weight: 900;
-    color: lighten(#151d2c, 10);
+    color: $input-regex-color;
+
+    .light-theme & {
+      color: $input-regex-color-light;
+    }
   }
 
   input {
     background-color: transparent;
     border: none;
     outline: none;
-    color: #1b77d2;
+    color: $accent-color;
     width: calc(100% - 100px);
   }
 
@@ -268,14 +283,14 @@ export default {
 
     .flags-label {
       font-size: 0.8em;
-      color: #1b77d2;
+      color: $accent-color;
       opacity: 0.6;
       margin: 0 5px;
     }
 
     .flag {
       display: inline-block;
-      color: #1b77d2;
+      color: $accent-color;
       cursor: pointer;
       font-weight: bold;
       height: 25px;
@@ -290,12 +305,21 @@ export default {
       }
 
       &.selected {
-        background-color: lighten(#151d2c, 10);
+        background-color: $flag-selected-color;
         color: #0c1520;
+
+        .light-theme & {
+          background-color: $flag-selected-color-light;
+          color: $accent-color;
+        }
       }
 
       &:hover {
-        background-color: #0f4478;
+        background-color: $flag-hover-color;
+
+        .light-theme & {
+          background-color: $flag-selected-color-light;
+        }
       }
     }
   }
@@ -303,7 +327,7 @@ export default {
   i {
     margin-right: 10px;
     margin-left: 10px;
-    color: #1b77d2;
+    color: $accent-color;
     cursor: pointer;
     justify-content: flex-end;
     line-height: 36px;
@@ -318,7 +342,7 @@ export default {
 #regex-modal {
   .modal-header,
   .modal-footer {
-    background-color: #151d2c !important;
+    background-color: $header-color !important;
     border: none !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   }
@@ -333,7 +357,7 @@ export default {
   }
 
   .modal-body {
-    background-color: lighten(#151d2c, 2);
+    background-color: $body-color;
 
     iframe {
       height: 70vh;

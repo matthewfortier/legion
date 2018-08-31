@@ -39,6 +39,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../themes.scss";
+
 .results-view {
   overflow-x: scroll;
 }
@@ -48,13 +50,18 @@ table {
 }
 
 th {
-  background-color: #2c333d;
+  background-color: $results-grid-header-color;
   white-space: nowrap;
   text-decoration: underline;
+
+  .light-theme & {
+    background-color: white;
+    color: black;
+  }
 }
 
 tbody tr:hover {
-  background-color: lighten(#1b77d2, 10);
+  background-color: $accent-color-light;
   cursor: pointer;
 }
 
@@ -65,8 +72,12 @@ td {
   padding-left: 15px;
   border-top: 1px solid #2f374a;
 
+  .light-theme & {
+    border-color: $td-border-color-light;
+  }
+
   &:first-child {
-    background-color: lighten(#1b77d2, 10);
+    background-color: $accent-color-light;
     padding: 0 5px;
     min-width: 20px;
     color: black;
@@ -77,6 +88,10 @@ pre {
   color: white;
   margin: 0;
   padding: 0;
+
+  .light-theme & {
+    color: black;
+  }
 }
 
 li {
@@ -92,14 +107,5 @@ li {
   height: 26px;
   line-height: 26px;
   background-color: #2c333d;
-}
-
-strong {
-  background-color: rgba(white, 0.4) !important;
-}
-
-.highlightText {
-  background: orange;
-  color: black;
 }
 </style>

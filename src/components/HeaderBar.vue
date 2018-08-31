@@ -73,8 +73,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$header-color: #151d2c;
-$body-color: lighten(#151d2c, 2);
+@import "../themes.scss";
 
 .header-bar {
   display: block;
@@ -88,7 +87,13 @@ $body-color: lighten(#151d2c, 2);
   user-select: none;
   background-color: $header-color;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  border-bottom: 1px solid lighten(#1b77d2, 10);
+  border-bottom: 1px solid $accent-color-light;
+
+  .light-theme & {
+    background-color: $header-color-light;
+    border-bottom: none;
+    color: black;
+  }
 }
 
 span {
@@ -117,15 +122,19 @@ span {
 
   i {
     &:hover {
-      background-color: lighten(#1b77d2, 10);
+      background-color: $accent-color-light;
     }
 
     &:nth-child(3):hover {
-      background-color: #e81123;
+      background-color: $windows-close-hover;
     }
 
     &:nth-child(3):active {
-      background-color: #f1707a;
+      background-color: $windows-close-active;
+    }
+
+    .light-theme & {
+      color: black;
     }
   }
 }
@@ -139,7 +148,8 @@ i {
 
 #run,
 #pause,
-#stop {
-  color: #1b77d2;
+#stop,
+#gear {
+  color: $accent-color;
 }
 </style>
