@@ -25,9 +25,6 @@ app.on("ready", () => {
     titleBarStyle: process.platform == "darwin" ? "hiddenInset" : "default"
   });
   mainWindow.loadURL(url);
-
-  mainWindow.webContents.send("process", process.platform);
-
   createBackgroundProcess();
 
   require("./menu");
@@ -78,6 +75,16 @@ ipcMain.on("browse", event => {
 ipcMain.on("open", (event, path) => {
   console.log(path);
   shell.openItem(path);
+});
+
+ipcMain.on("open-location", (event, path) => {
+  console.log(path);
+  shell.showItemInFolder(path);
+});
+
+ipcMain.on("move-trash", (event, path) => {
+  console.log(path);
+  shell.moveItemToTrash(path);
 });
 
 ipcMain.on("query", function (event, args) {

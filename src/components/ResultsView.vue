@@ -1,7 +1,7 @@
 <template>
     <div class="results-view" data-simplebar> 
-        <tr><th v-if="this.displayed" colspan="2">{{ this.displayed.path }}</th><th></th></tr>
         <table>
+            <thead><tr><th v-if="this.displayed" colspan="2">{{ this.displayed.path }}</th><th></th></tr></thead>
             <tbody v-if="this.displayed" >
                 <tr v-for="result in this.displayed.match" :key="result.number">
                     <td>{{ result.number }}</td>
@@ -50,9 +50,11 @@ table {
 }
 
 th {
-  background-color: $results-grid-header-color;
+  //background-color: $results-grid-header-color;
+  font-size: 0.8em;
   white-space: nowrap;
   text-decoration: underline;
+  border-bottom: 1px solid #545454;
 
   .light-theme & {
     background-color: white;
@@ -61,7 +63,7 @@ th {
 }
 
 tbody tr:hover {
-  background-color: $accent-color-light;
+  background-color: #4f4f4f;
   cursor: pointer;
 }
 
@@ -70,17 +72,16 @@ td {
   margin: 0;
   white-space: nowrap;
   padding-left: 15px;
-  border-top: 1px solid #2f374a;
+  border-top: 1px solid #4f4f4f;
+  z-index: -1;
 
   .light-theme & {
     border-color: $td-border-color-light;
   }
 
   &:first-child {
-    background-color: $accent-color-light;
-    padding: 0 5px;
-    min-width: 20px;
-    color: black;
+    font-weight: bold;
+    font-size: 0.8em;
   }
 }
 

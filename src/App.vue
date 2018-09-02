@@ -2,8 +2,8 @@
   <div id="app">
     <HeaderBar />
     <QueryBuilder />
-    <Results />
-    <FooterBar />
+    <Results :matches="matches" :displayed="displayed" />
+    <FooterBar :matched="matches.length" :matchedSize="matchedSize" :searched="searched" :searchedSize="searchedSize" />
   </div>
 </template>
 
@@ -11,6 +11,7 @@
 const $ = require("jquery");
 require("bootstrap/dist/css/bootstrap.css");
 require("bootstrap");
+var Split = require("split.js");
 
 import QueryBuilder from "@/components/QueryBuilder";
 import HeaderBar from "@/components/HeaderBar";
@@ -27,16 +28,53 @@ export default {
   },
   data() {
     return {
-      electron: window.require("electron")
+      electron: window.require("electron"),
+      matches: [],
+      matchedSize: 0,
+      searched: 0,
+      searchedSize: 0,
+      displayed: null,
+      split: null
     };
   },
   mounted() {
+    var that = this;
     $('[data-toggle="tooltip"]').tooltip({
       delay: { show: 1000, hide: 100 }
     });
 
+    that.split = Split([".results-grid", ".results-view"], {
+      sizes: [50, 50],
+      minSize: 300
+    });
+    that.split.collapse(1);
+
     this.electron.ipcRenderer.on("toggle-light", () => {
       document.documentElement.classList.toggle("light-theme");
+    });
+
+    this.electron.ipcRenderer.on("clear", () => {
+      that.matches = [];
+      that.displayed = null;
+      that.split.collapse(1);
+    });
+
+    this.$socket.on("match", data => {
+      var temp = JSON.parse(data);
+      that.matches.push(temp);
+      that.matchedSize += temp.stats.size;
+    });
+
+    this.$socket.on("result", data => {
+      that.displayed = data;
+      that.split.setSizes([50, 50]);
+    });
+
+    this.$socket.on("searched-files", data => {
+      // eslint-disable-next-line
+      console.log(data);
+      that.searched = data.searched;
+      that.searchedSize = data.searchedSize;
     });
   }
 };
@@ -58,7 +96,6 @@ body {
 }
 
 body {
-  border: 1px solid $body-border-color;
   border-radius: 5px;
 }
 
@@ -92,7 +129,7 @@ body {
   display: flex;
   overflow: hidden;
   width: 100%;
-  border-top: 1px solid $accent-color-light;
+  border-top: 1px solid #545454;
 
   .light-theme & {
     border: none;
@@ -129,9 +166,14 @@ body {
   cursor: ns-resize;
 }
 
+[data-simplebar] {
+  z-index: auto !important;
+}
+
 .highlightText {
-  background: $match-highlight-text-color;
-  color: white;
+  //background: $match-highlight-text-color;
+  color: $accent-color-light;
+  font-weight: bold;
 
   .light-theme & {
     color: black;

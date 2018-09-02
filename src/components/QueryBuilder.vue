@@ -7,6 +7,7 @@
             <span class="label">Directory:</span>
             <input v-model="directory" type="text" placeholder="Root directory...">
           </div>
+          <i @click="gitignore = !gitignore" v-bind:class="!gitignore ? 'off' : ''" class="fab fa-git-square" data-toggle="tooltip" data-placement="bottom" title="Ignore"></i>
           <i v-on:click="browse()" id="loadPath" class="fas fa-folder-open" data-toggle="tooltip" data-placement="bottom" title="Browse..."></i>
         </div>
       
@@ -114,6 +115,7 @@ export default {
       query: "**/*.html",
       content: "",
       directory: "/Users/matthewfortier/Documents/code/legion",
+      gitignore: false,
       flags: "",
       ignore: false,
       global: false,
@@ -136,7 +138,8 @@ export default {
           flags: this.flags
         },
         query: this.query,
-        directory: this.directory
+        directory: this.directory,
+        gitignore: this.gitignore
       });
     },
     paste: function(e) {
@@ -168,8 +171,6 @@ export default {
       this.flags = `${this.ignore ? "i" : ""}${this.global ? "g" : ""}${
         this.multiline ? "m" : ""
       }${this.unicode ? "u" : ""}${this.sticky ? "y" : ""}`;
-      // eslint-disable-next-line
-      console.log(this.flags);
     },
     browse: () => {
       ipcRenderer.send("browse");
@@ -192,8 +193,6 @@ export default {
     });
 
     $(".legion-input input").on("focus", () => {
-      // eslint-disable-next-line
-      console.log("Focus");
       $(this)
         .parent()
         .css("border-color", "white");
@@ -283,8 +282,8 @@ export default {
 
     .flags-label {
       font-size: 0.8em;
-      color: $accent-color;
-      opacity: 0.6;
+      color: #9ca7bc;
+      //opacity: 0.6;
       margin: 0 5px;
     }
 
@@ -331,6 +330,10 @@ export default {
     cursor: pointer;
     justify-content: flex-end;
     line-height: 36px;
+
+    &.off {
+      color: #464646;
+    }
   }
 }
 

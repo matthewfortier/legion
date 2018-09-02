@@ -87,12 +87,12 @@ export default {
   user-select: none;
   background-color: $header-color;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  border-bottom: 1px solid $accent-color-light;
+  border-bottom: 1px solid #545454;
 
   .light-theme & {
-    background-color: $header-color-light;
+    background-color: $accent-color;
     border-bottom: none;
-    color: black;
+    color: white;
   }
 }
 
@@ -102,7 +102,7 @@ span {
 }
 
 .left {
-  padding-left: 15px;
+  padding-left: 10px;
   -webkit-app-region: no-drag;
 
   &.darwin {
@@ -134,7 +134,7 @@ span {
     }
 
     .light-theme & {
-      color: black;
+      color: white;
     }
   }
 }
@@ -151,5 +151,9 @@ i {
 #stop,
 #gear {
   color: $accent-color;
+
+  .light-theme & {
+    color: white;
+  }
 }
 </style>

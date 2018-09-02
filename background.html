@@ -1,102 +1,15 @@
-<script type="text/javascript">
-    const { ipcRenderer } = require('electron');
-    const remote = require('electron').remote;
-    const fs = require("file-system");
-    const FileHound = require('filehound');
-    const { FileSniffer, asArray } = require('filesniffer');
-    var lineNumber = require('line-number');
-    var Glob = require("glob").Glob;
+<!DOCTYPE html>
+<html lang="en">
 
-    var globs;
-    var async = require("async");
-    var os = require('os'),
-        cpuCount = os.cpus().length;
-    const hirestime = require('hirestime');
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
 
-    var server = require('http').createServer();
-    var io = require('socket.io')(server);
-    io.on('connection', (client) => {
+<body>
+    <script src="./background.js"></script>
+</body>
 
-        var content;
-        var flags;
-
-        client.on("load-results", (path) => {
-            var data = fs.readFileSync(path, 'utf8')
-            var filename = path.replace(/^.*[\\\/]/, '')
-            var match = lineNumber(data, new RegExp(content, flags))
-            io.emit("result", {
-                path: path,
-                file: filename,
-                match: match
-            });
-        })
-
-        client.on("pause", () => {
-            ipcRenderer.send("console-log", "pause");
-            globs.pause();
-        });
-
-        client.on("query", (args) => {
-            const getElapsed = hirestime()
-
-            var dirs = args.directory.split(",");
-            var expression = args.query;
-            if (/^[A-Za-z]+$/.test(args.query)) {
-                expression = `*${args.query}*`;
-            }
-
-            content = args.content.content;
-            flags = args.content.flags;
-
-            var options = {
-                cwd: dirs[0],
-                absolute: true
-            };
-
-            var q = async.queue(function (file, callback) {
-                var filename = file.replace(/^.*[\\\/]/, '');
-                var path = file;
-                fs.readFile(file, 'utf8', (err, data) => {
-                    if (err) callback();
-
-                    var stats = fs.statSync(file);
-                    var match = data.search(new RegExp(content, flags));
-                    if (match > -1) {
-                        io.emit("increment-matched", stats.size);
-                        var buf = JSON.stringify({
-                            path: path,
-                            file: filename,
-                            directory: dirs[0],
-                            stats: stats
-                        });
-                        io.emit("match", buf);
-                    }
-                    io.emit("increment-searched", stats.size);
-                    callback();
-                });
-            }, 200);
-
-            // assign a callback
-            q.drain = function () {
-                io.emit("stop-loading", getElapsed(hirestime.S));
-            };
-
-            globs = new Glob(expression, options);
-
-            globs.on("match", (file) => {
-                q.push(file);
-            });
-        })
-    });
-    io.listen(9090);
-
-    function splitArrayIntoChunks(arr, chunkLen) {
-        var chunkList = [];
-        var chunkCount = Math.ceil(arr.length / chunkLen);
-        for (var i = 0; i < chunkCount; i++) {
-            chunkList.push(arr.splice(0, chunkLen));
-        }
-        return chunkList;
-    }
-
-</script>
+</html>

@@ -11,10 +11,9 @@
               <div v-if="loading" class="loading-message">Searching {{searching}} files...</div>
               <div v-else class="loading-message">Ready</div>
             </div>
-            <div class="center">
-              <span v-show="time">{{ time }} seconds</span>
-            </div>
             <div class="right">
+              <span v-show="time">{{ time }} seconds</span>
+              <span class="divider"></span>
               <span>{{ matched }} files found ({{ matchedSize | bytesToSize }})</span>
               <span class="divider"></span>
               <span>{{ searched }} files searched ({{ searchedSize | bytesToSize }})</span>
@@ -28,14 +27,11 @@ const { ipcRenderer } = window.require("electron");
 
 export default {
   name: "FooterBar",
+  props: ["matched", "matchedSize", "searched", "searchedSize"],
   data() {
     return {
       loading: false,
       searching: null,
-      searched: 0,
-      searchedSize: 0,
-      matched: null,
-      matchedSize: 0,
       time: null
     };
   },
@@ -51,7 +47,6 @@ export default {
     var that = this;
     ipcRenderer.on("files-searching", (event, args) => {
       // eslint-disable-next-line
-      console.log("Searching");
       that.searching = args;
     });
     this.$socket.on("stop-loading", time => {
@@ -64,25 +59,7 @@ export default {
     ipcRenderer.on("start-loading", () => {
       that.startLoading();
       that.searching = null;
-      that.matched = null;
-      that.searched = 0;
-      that.matched = 0;
-      that.searchedSize = 0;
-      that.matchedSize = 0;
       that.time = null;
-    });
-    ipcRenderer.on("percent-complete", (event, args) => {
-      // eslint-disable-next-line
-      console.log(args);
-    });
-
-    this.$socket.on("increment-searched", size => {
-      that.searched++;
-      that.searchedSize += size;
-    });
-    this.$socket.on("increment-matched", size => {
-      that.matched++;
-      that.matchedSize += size;
     });
   }
 };
@@ -96,8 +73,8 @@ export default {
   height: 31px;
 
   .light-theme & {
-    background-color: white;
-    color: black;
+    background-color: $accent-color;
+    color: white;
     box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.12), 0 -1px 2px rgba(0, 0, 0, 0.24);
   }
 }
@@ -133,7 +110,6 @@ export default {
   height: 100%;
   width: 100%;
   position: relative;
-
   div:nth-child(1) {
     top: 0;
     left: 0;
@@ -164,7 +140,6 @@ export default {
 
 .left {
   padding-left: 10px;
-  width: 33vw;
 
   &.loading {
     padding-left: 34px;
@@ -173,7 +148,6 @@ export default {
 
 .right {
   padding-right: 10px;
-  width: 33vw;
   display: flex;
   justify-content: flex-end;
 
