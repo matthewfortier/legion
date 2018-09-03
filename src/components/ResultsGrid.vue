@@ -77,6 +77,8 @@ th {
   padding-left: 10px;
   border-bottom: 1px solid #545454;
   font-size: 0.8em;
+  outline: none;
+  cursor: pointer;
 
   .light-theme & {
     background-color: white;

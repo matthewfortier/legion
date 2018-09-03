@@ -68,8 +68,8 @@ ipcMain.on("browse", event => {
   var path = dialog.showOpenDialog(mainWindow, {
     properties: ["openDirectory", "multiSelections"]
   });
-  console.log(path.join(","));
-  event.sender.send("directory", path.join(","));
+  if (path)
+    event.sender.send("directory", path.join(","));
 });
 
 ipcMain.on("open", (event, path) => {

@@ -11,6 +11,7 @@
 const $ = require("jquery");
 require("bootstrap/dist/css/bootstrap.css");
 require("bootstrap");
+require("tablesorter");
 var Split = require("split.js");
 
 import QueryBuilder from "@/components/QueryBuilder";
@@ -34,7 +35,8 @@ export default {
       searched: 0,
       searchedSize: 0,
       displayed: null,
-      split: null
+      split: null,
+      table: null
     };
   },
   mounted() {
@@ -48,6 +50,8 @@ export default {
       minSize: 300
     });
     that.split.collapse(1);
+
+    $("#results-table").tablesorter({ sortList: [[0, 0], [1, 0]] });
 
     this.electron.ipcRenderer.on("toggle-light", () => {
       document.documentElement.classList.toggle("light-theme");
@@ -71,10 +75,9 @@ export default {
     });
 
     this.$socket.on("searched-files", data => {
-      // eslint-disable-next-line
-      console.log(data);
       that.searched = data.searched;
       that.searchedSize = data.searchedSize;
+      $("#results-table").trigger("updateAll", [true, () => {}]);
     });
   }
 };
