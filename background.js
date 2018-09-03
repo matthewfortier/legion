@@ -5,8 +5,12 @@ const hirestime = require('hirestime');
 var lineNumber = require('line-number');
 var parse = require('gitignore-globs');
 var async = require("async");
-var server = require('http').createServer();
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+
+io.listen(9090);
 
 io.on('connection', (client) => {
 
@@ -98,7 +102,6 @@ io.on('connection', (client) => {
         })
     })
 });
-io.listen(9090);
 
 function splitArrayIntoChunks(arr, chunkLen) {
     var chunkList = [];

@@ -7,7 +7,11 @@
     "start": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron main.js",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "package": "npm run build; npm run package-osx; npm run package-win; npm run package-linux;",
+    "package-osx": "electron-packager ./ --platform=darwin --arch=x64 --icon=src/assets/app.icns --out=package --asar --overwrite",
+    "package-win": "electron-packager ./ --platform=win32 --arch=ia32 --icon=assets/app.ico --out=package --asar --overwrite=force",
+    "package-linux": "electron-packager ./ --platform=linux --arch=ia32 --icon=assets/app.ico --out=package --asar --overwrite=force"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.2.0",
@@ -23,6 +27,7 @@
     "datatables.net-bs4": "^1.10.19",
     "electron-window-state": "^4.1.1",
     "escape-html": "^1.0.3",
+    "express": "^4.16.3",
     "fast-glob": "^2.2.2",
     "file-matcher": "^1.3.0",
     "file-system": "^2.2.2",
@@ -35,6 +40,7 @@
     "hirestime": "^3.2.1",
     "i": "^0.3.6",
     "jquery": "^3.3.1",
+    "line-number": "^0.1.0",
     "mime-types": "^2.1.20",
     "node-find-files": "0.0.4",
     "npm": "^6.4.0",
@@ -62,7 +68,7 @@
     "@vue/cli-service": "^3.0.0",
     "@vue/eslint-config-prettier": "^3.0.1",
     "electron": "^2.0.7",
-    "line-number": "^0.1.0",
+    "electron-packager": "^12.1.1",
     "mark.js": "^8.11.1",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",

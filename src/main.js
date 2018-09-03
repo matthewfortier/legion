@@ -8,7 +8,7 @@ import contenteditableDirective from "vue-contenteditable-directive";
 Vue.use(contenteditableDirective);
 
 Vue.config.productionTip = false;
-Vue.prototype.$socket = io("localhost:9090");
+Vue.prototype.$socket = io("http://localhost:9090");
 
 Vue.filter("highlight", (word, query) => {
   var check = new RegExp(escape(query), "ig");
