@@ -1,8 +1,8 @@
 .DS_Store
 node_modules
 node_modules.nosync
-/dist
-/package
+dist
+package
 
 # local env files
 .env.local

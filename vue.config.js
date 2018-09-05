@@ -1,3 +1,3 @@
 module.exports = {
-    //baseUrl: `${process.cwd()}/dist/`
-}
+    //baseUrl: `${process.cwd()}/dist/`,
+};

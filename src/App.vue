@@ -63,10 +63,12 @@ export default {
       that.split.collapse(1);
     });
 
-    this.$socket.on("match", data => {
-      var temp = JSON.parse(data);
-      that.matches.push(temp);
-      that.matchedSize += temp.stats.size;
+    this.electron.ipcRenderer.on("match", (event, data) => {
+      // eslint-disable-next-line
+      console.log(data);
+      this.$nextTick(() => {
+        that.matches = that.matches.concat(data);
+      });
     });
 
     this.$socket.on("result", data => {

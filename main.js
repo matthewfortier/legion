@@ -4,6 +4,7 @@ const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const shell = electron.shell;
 const dialog = electron.dialog;
+var IPCStream = require('electron-ipc-stream')
 
 let url;
 if (process.env.NODE_ENV === "DEV") {
@@ -25,9 +26,16 @@ app.on("ready", () => {
     titleBarStyle: process.platform == "darwin" ? "hiddenInset" : "default"
   });
   mainWindow.loadURL(url);
+  var background = new IPCStream('background-stream', mainWindow)
+  var client = new IPCStream('client-stream', mainWindow)
   createBackgroundProcess();
 
   require("./menu");
+
+  background.on('data', function (data) {
+    console.dir(data)
+    mainWindow.webContents.send("match", data);
+  })
 });
 
 function createBackgroundProcess() {
@@ -68,8 +76,7 @@ ipcMain.on("browse", event => {
   var path = dialog.showOpenDialog(mainWindow, {
     properties: ["openDirectory", "multiSelections"]
   });
-  if (path)
-    event.sender.send("directory", path.join(","));
+  if (path) event.sender.send("directory", path.join(","));
 });
 
 ipcMain.on("open", (event, path) => {

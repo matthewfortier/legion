@@ -3,6 +3,7 @@
         <table id="results-table">
             <thead>
                 <tr>
+                  <th></th>
                   <th>Filename</th>
                   <th>Path</th>
                   <th>Type</th>
@@ -14,6 +15,7 @@
             </thead>
             <tbody>
                 <tr @contextmenu.prevent="$refs.menu.open($event, { path: match.path })" v-on:click="loadResults(match.path)" v-on:dblclick="openFile(match.path)" :key="match.path" v-for="match in this.$parent.matches">
+                    <td><img v-bind:src="match.file | icon" alt=""></td>
                     <td>{{ match.file }}</td>
                     <td>{{ match.path.replace(match.directory, "").replace(/^\//, "").replace(/^\\/, "") }}</td>
                     <td>{{ match.file.slice((match.file.lastIndexOf(".") - 1 >>> 0) + 2) | mime }}</td>
@@ -85,7 +87,7 @@ th {
     color: black;
   }
 
-  &:nth-child(n + 3) {
+  &:nth-child(n + 4) {
     text-align: right;
   }
 }
@@ -97,12 +99,21 @@ td {
   padding-left: 10px;
   user-select: none;
 
+  &:nth-child(1) {
+    padding-right: 5px;
+
+    img {
+      height: 20px;
+      width: 20px;
+    }
+  }
+
   .light-theme & {
     border-color: $td-border-color-light;
     color: black;
   }
 
-  &:nth-child(n + 3) {
+  &:nth-child(n + 4) {
     text-align: right;
   }
 }
