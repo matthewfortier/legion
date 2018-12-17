@@ -1,22 +1,11 @@
-# legion
-Legion is a cross-platform file searching utility designed with the developer in mind. Daunting codebases with hundreds of thousands of lines of code instantly made more manageable. Use of glob patterns for file searching and regex for containing text will be familiar to savvy developers and help them find the files and code they need.
-![UI Screenshot](https://i.imgur.com/d4yg5iQ.png)
-## Project setup
-```
-npm install
-```
+## Electron with Python
 
-### Compiles and hot-reloads for development
-```
-npm start
-```
+Very Simple Python App with Electron GUI which demonstrates Python/Node.js-Electron Communication.
 
-### Compiles and minifies for production (Vue)
-```
-npm run build
-```
+You can read this [Electron/Python tutorial](https://www.techiediaries.com/python-electron-tutorial) for more information
 
-### Lints and fixes files (Vue)
-```
-npm run lint
-```
+![Electron Python](https://i.imgur.com/bM6cJR3.png)
+
+![Electron Python](https://i.imgur.com/ytib7jt.png)
+
+ 

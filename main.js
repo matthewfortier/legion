@@ -1,124 +1,47 @@
-const electron = require("electron");
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
-const ipcMain = electron.ipcMain;
-const shell = electron.shell;
-const dialog = electron.dialog;
-var IPCStream = require('electron-ipc-stream')
+const { app, BrowserWindow, ipcMain } = require("electron");
 
-let url;
-if (process.env.NODE_ENV === "DEV") {
-  url = "http://localhost:8080/";
-} else {
-  url = `file://${process.cwd()}/dist/index.html`;
+let win;
+var PythonShell = require("python-shell");
+let options = {
+  pythonPath:
+    "C:/Users/M779668/AppData/Local/Programs/Python/Python37-32/python.exe"
+};
+var shell = new PythonShell("api.py", options);
+
+function createWindow() {
+  win = new BrowserWindow({ width: 800, height: 600 });
+  win.loadFile("index.html");
 }
 
-let mainWindow;
-let backgroundWindow;
-
-app.on("ready", () => {
-  mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minHeight: 600,
-    minWidth: 800,
-    frame: false,
-    titleBarStyle: process.platform == "darwin" ? "hiddenInset" : "default"
+ipcMain.on("getFiles", (event, args) => {
+  var shell = new PythonShell("api.py", options);
+  shell.send(
+    JSON.stringify({
+      command: "getFiles",
+      path: args.path,
+      glob: args.glob,
+      containing: args.containing
+    })
+  );
+  shell.on("message", function(message) {
+    // received a message sent from the Python script (a simple "print" statement)
+    win.webContents.send("ping", message);
   });
-  mainWindow.loadURL(url);
-  var background = new IPCStream('background-stream', mainWindow)
-  var client = new IPCStream('client-stream', mainWindow)
-  createBackgroundProcess();
 
-  require("./menu");
+  // end the input stream and allow the process to exit
+  shell.end(function(err) {
+    if (err) {
+      throw err;
+    }
 
-  background.on('data', function (data) {
-    console.dir(data)
-    mainWindow.webContents.send("match", data);
-  })
+    console.log("finished");
+  });
 });
 
-function createBackgroundProcess() {
-  backgroundWindow = new BrowserWindow({ show: false });
-  backgroundWindow.loadURL(`file://${process.cwd()}/background.html`);
-  backgroundWindow.on("ready", () => {
-    console.log("Background process ready");
-  });
-  backgroundWindow.on("closed", () => {
-    console.log("background window closed");
-  });
-  return backgroundWindow;
-}
+app.on("ready", createWindow);
 
-ipcMain.on("cross-component", function (event, args) {
-  if (typeof args === "string") {
-    event.sender.send(args);
-  } else {
-    event.sender.send(args.message, args.data);
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
   }
-});
-
-ipcMain.on("cross-component-process", function (event, args) {
-  if (typeof args === "string") {
-    mainWindow.webContents.send(args);
-  } else {
-    mainWindow.webContents.send(args.message, args.data);
-  }
-});
-
-ipcMain.on("stop-query", () => {
-  backgroundWindow.close();
-  mainWindow.webContents.send("stop-loading");
-  createBackgroundProcess();
-});
-
-ipcMain.on("browse", event => {
-  var path = dialog.showOpenDialog(mainWindow, {
-    properties: ["openDirectory", "multiSelections"]
-  });
-  if (path) event.sender.send("directory", path.join(","));
-});
-
-ipcMain.on("open", (event, path) => {
-  console.log(path);
-  shell.openItem(path);
-});
-
-ipcMain.on("open-location", (event, path) => {
-  console.log(path);
-  shell.showItemInFolder(path);
-});
-
-ipcMain.on("move-trash", (event, path) => {
-  console.log(path);
-  shell.moveItemToTrash(path);
-});
-
-ipcMain.on("query", function (event, args) {
-  console.log("bg-query");
-  backgroundWindow.webContents.send("bg-query", args);
-});
-
-ipcMain.on("file", (event, args) => {
-  mainWindow.webContents.send("file", args);
-});
-
-ipcMain.on("match", (event, args) => {
-  mainWindow.webContents.send("match", args);
-});
-
-ipcMain.on("stop-loading", (event, args) => {
-  mainWindow.webContents.send("stop-loading");
-});
-
-ipcMain.on("start-loading", (event, args) => {
-  mainWindow.webContents.send("start-loading");
-});
-
-ipcMain.on("platform", () => {
-  mainWindow.webContents.send("platform", process.platform);
-});
-
-ipcMain.on("console-log", (event, args) => {
-  console.log(args);
 });

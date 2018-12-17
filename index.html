@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello Python from Electron!</title>
+  </head>
+  <body>
+    <input id="directory" value="C:/Source/Noting/" placeholder="Directory" />
+    <input id="filename" value="**/*.html" placeholder="Filename" />
+    <input id="containing" placeholder="Containing" />
+    <button onclick="go()">Go</button>
+    <table id="files"></table>
+  </body>
+  <script>
+    let table = document.getElementById("files");
+    require("electron").ipcRenderer.on("ping", (event, message) => {
+      console.log(message); // Prints 'whoooooooh!'
+      var row = table.insertRow(0);
+      var cell1 = row.insertCell(0);
+      cell1.innerHTML = message;
+    });
+
+    function go() {
+      var directory = document.getElementById("directory").value;
+      var filname = document.getElementById("filename").value;
+      var containing = document.getElementById("containing").value;
+
+      table.innerHTML = "";
+
+      require("electron").ipcRenderer.send("getFiles", {
+        path: directory,
+        glob: filname,
+        containing: containing
+      });
+    }
+  </script>
+</html>
