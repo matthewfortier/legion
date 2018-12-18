@@ -5,9 +5,7 @@ import mmap
 
 
 def getFiles(path, containing):
-    answer = []
-    endPaths = glob.glob(path, recursive=True)
-    answer += endPaths
+    answer = glob.glob(path, recursive=True)
 
     contains = []
     print(len(answer))
@@ -27,8 +25,6 @@ def getFiles(path, containing):
         "searched": len(answer),
         "files": contains
     }
-
-# print(getFiles("C:\\Source\\Noting\\"))
 
 
 def read_in():

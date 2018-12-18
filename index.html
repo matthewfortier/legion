@@ -3,35 +3,136 @@
   <head>
     <meta charset="UTF-8" />
     <title>Hello Python from Electron!</title>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.6.1/css/all.css"
+      integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="styles/normalize.css" />
+    <link rel="stylesheet" href="styles/styles.css" />
   </head>
   <body>
-    <input id="directory" value="C:/Source/Noting/" placeholder="Directory" />
-    <input id="filename" value="**/*.html" placeholder="Filename" />
-    <input id="containing" placeholder="Containing" />
-    <button onclick="go()">Go</button>
-    <table id="files"></table>
+    <div class="header-bar">
+      <div class="left">
+        <i onclick="go()" id="run" class="fas fa-play" title="Run Query"></i>
+        <i id="pause" class="fas fa-pause" title="Pause"></i>
+        <i id="stop" class="fas fa-stop" title="Stop"></i>
+      </div>
+      <div class="center"><span>Legion</span></div>
+      <div class="right">
+        <div v-if="os == 'win32'" class="windows-buttons">
+          <i id="minimize" class="far fa-window-minimize"></i>
+          <i id="maximize" class="far fa-window-maximize"></i>
+          <i id="close" class="far fa-window-close"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="query-builder">
+      <div class="input">
+        <span>Directory:</span>
+        <input
+          id="directory"
+          type="text"
+          placeholder="Root directory..."
+          value="C:/Source/Noting/"
+        />
+        <div class="options"></div>
+      </div>
+      <div class="input">
+        <span>Filename:</span>
+        <input
+          id="filename"
+          type="text"
+          placeholder="Glob patterns..."
+          value="**/*.html"
+        />
+        <div class="options"></div>
+      </div>
+      <div class="input">
+        <span>Containing:</span>
+        <input
+          id="containing"
+          type="text"
+          placeholder="Containing text or expression..."
+          value="Note"
+        />
+        <div class="options"></div>
+      </div>
+    </div>
+
+    <div class="results">
+      <div id="results-grid">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Filename</th>
+            </tr>
+          </thead>
+          <tbody id="results-table-body"></tbody>
+        </table>
+      </div>
+      <div id="results-output"><h1>Testing</h1></div>
+    </div>
   </body>
+  <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
   <script>
-    let table = document.getElementById("files");
-    require("electron").ipcRenderer.on("ping", (event, message) => {
-      console.log(message); // Prints 'whoooooooh!'
-      var row = table.insertRow(0);
-      var cell1 = row.insertCell(0);
-      cell1.innerHTML = message;
-    });
+    const $ = require("jquery");
+    require("tablesorter");
+    const BrowserWindow = window.require("electron").remote.BrowserWindow;
+
+    (function() {
+      addWindowsEventListeners();
+
+      var splitter = Split(["#results-grid", "#results-output"], {
+        sizes: [50, 50],
+        minSize: 300
+      });
+      splitter.collapse(1);
+
+      let table = document.getElementById("results-table");
+      $(table).tablesorter({ sortList: [[0, 0]] });
+
+      require("electron").ipcRenderer.on("ping", (event, message) => {
+        console.log(message);
+        var row = `
+                                          <tr>
+                                            <td>${message}</td>
+                                          </tr>
+                                        `;
+        $(table)
+          .find("tbody")
+          .append($(row));
+        //.trigger("addRows", [$(row), true]);
+      });
+    })();
+
+    function addWindowsEventListeners() {
+      $("#close").click(_ => BrowserWindow.getFocusedWindow().close());
+      $("#maximize").click(_ => {
+        var win = BrowserWindow.getFocusedWindow();
+        win.isMaximized() ? win.unmaximize() : win.maximize();
+      });
+      $("#minimize").click(_ => BrowserWindow.getFocusedWindow().minimize());
+    }
 
     function go() {
       var directory = document.getElementById("directory").value;
-      var filname = document.getElementById("filename").value;
+      var filename = document.getElementById("filename").value;
       var containing = document.getElementById("containing").value;
 
-      table.innerHTML = "";
+      //document.getElementById("results-table-body").innerHTML = "";
 
-      require("electron").ipcRenderer.send("getFiles", {
+      sendAction("getFiles", {
         path: directory,
-        glob: filname,
+        glob: filename,
         containing: containing
       });
+    }
+
+    function sendAction(command, args) {
+      require("electron").ipcRenderer.send(command, args);
     }
   </script>
 </html>

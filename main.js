@@ -9,7 +9,15 @@ let options = {
 var shell = new PythonShell("api.py", options);
 
 function createWindow() {
-  win = new BrowserWindow({ width: 800, height: 600 });
+  win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minHeight: 600,
+    minWidth: 800,
+    frame: false,
+    transparent: true,
+    titleBarStyle: process.platform == "darwin" ? "hiddenInset" : "default"
+  });
   win.loadFile("index.html");
 }
 
