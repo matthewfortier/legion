@@ -3,8 +3,6 @@ import os
 import json
 import glob
 import mmap
-import re
-import contextlib
 
 
 def getFiles(path, containing):
@@ -23,7 +21,7 @@ def getFiles(path, containing):
                     directory = os.path.dirname(file)
                     obj = {
                         "file": file,
-                        "filename": file.replace(directory + '/', ''),
+                        "filename": file.replace(directory, '')[1:],
                         "directory": directory,
                         "extension": file_extension,
                         "stats": {

@@ -14,7 +14,9 @@
     "electron": "^2.0.8"
   },
   "dependencies": {
+    "file-system": "^2.2.2",
     "jquery": "^3.3.1",
+    "line-number": "^0.1.0",
     "mime-types": "^2.1.21",
     "python-shell": "^0.5.0",
     "tablesorter": "^2.31.1"

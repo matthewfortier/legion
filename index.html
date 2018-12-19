@@ -1,123 +1,140 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>Hello Python from Electron!</title>
-        <link
-            rel="stylesheet"
-            href="https://use.fontawesome.com/releases/v5.6.1/css/all.css"
-            integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP"
-            crossorigin="anonymous"
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello Python from Electron!</title>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.6.1/css/all.css"
+      integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="styles/normalize.css" />
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <div class="header-bar">
+      <div class="left">
+        <i onclick="go()" id="run" class="fas fa-play" title="Run Query"></i>
+        <i id="pause" class="fas fa-pause" title="Pause"></i>
+        <i id="stop" class="fas fa-stop" title="Stop"></i>
+      </div>
+      <div class="center"><span>Legion</span></div>
+      <div class="right">
+        <div class="windows-buttons">
+          <i id="minimize" class="far fa-window-minimize"></i>
+          <i id="maximize" class="far fa-window-maximize"></i>
+          <i id="close" class="fas fa-times"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="query-builder">
+      <div class="input">
+        <span>Directory:</span>
+        <input
+          id="directory"
+          type="text"
+          placeholder="Root directory..."
+          value="C:/Source/Noting/"
         />
-        <link rel="stylesheet" href="styles/normalize.css" />
-        <link rel="stylesheet" href="styles/styles.css" />
-    </head>
-    <body>
-        <div class="header-bar">
-            <div class="left">
-                <i
-                    onclick="go()"
-                    id="run"
-                    class="fas fa-play"
-                    title="Run Query"
-                ></i>
-                <i id="pause" class="fas fa-pause" title="Pause"></i>
-                <i id="stop" class="fas fa-stop" title="Stop"></i>
-            </div>
-            <div class="center"><span>Legion</span></div>
-            <div class="right">
-                <div class="windows-buttons">
-                    <i id="minimize" class="far fa-window-minimize"></i>
-                    <i id="maximize" class="far fa-window-maximize"></i>
-                    <i id="close" class="far fa-window-close"></i>
-                </div>
-            </div>
+        <div class="options"></div>
+      </div>
+      <div class="input">
+        <span>Filename:</span>
+        <input
+          id="filename"
+          type="text"
+          placeholder="Glob patterns..."
+          value="**/*.scss"
+        />
+        <div class="options"></div>
+      </div>
+      <div class="input">
+        <span>Containing:</span>
+        <input
+          id="containing"
+          type="text"
+          placeholder="Containing text or expression..."
+          value=""
+        />
+        <div class="options"></div>
+      </div>
+    </div>
+
+    <div class="results">
+      <div id="results-grid">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Path</th>
+              <th>Type</th>
+              <th>Size</th>
+              <th>Accessed</th>
+              <th>Modified</th>
+            </tr>
+          </thead>
+          <tbody id="results-table-body"></tbody>
+        </table>
+      </div>
+
+      <div id="results-output">
+        <table id="results-output-table">
+          <thead>
+            <tr>
+              <th colspan="2">File Header</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer-bar">
+      <div class="loader hidden">
+        <div class="loader1">
+          <div></div>
+          <div></div>
         </div>
+      </div>
+    </div>
+  </body>
+  <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+  <script>
+    const $ = require("jquery");
+    require("tablesorter");
+    const mime = require("mime-types");
+    const BrowserWindow = window.require("electron").remote.BrowserWindow;
+    const process = window.require("electron").remote.process;
+    var splitter;
 
-        <div class="query-builder">
-            <div class="input">
-                <span>Directory:</span>
-                <input
-                    id="directory"
-                    type="text"
-                    placeholder="Root directory..."
-                    value="/Users/matthewfortier/Documents/code/legion/"
-                />
-                <div class="options"></div>
-            </div>
-            <div class="input">
-                <span>Filename:</span>
-                <input
-                    id="filename"
-                    type="text"
-                    placeholder="Glob patterns..."
-                    value="**/*.scss"
-                />
-                <div class="options"></div>
-            </div>
-            <div class="input">
-                <span>Containing:</span>
-                <input
-                    id="containing"
-                    type="text"
-                    placeholder="Containing text or expression..."
-                    value=""
-                />
-                <div class="options"></div>
-            </div>
-        </div>
+    var previousSearch = "";
 
-        <div class="results">
-            <div id="results-grid">
-                <table id="results-table">
-                    <thead>
-                        <tr>
-                            <th>Filename</th>
-                            <th>Path</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Accessed</th>
-                            <th>Modified</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-table-body"></tbody>
-                </table>
-            </div>
-            <div id="results-output"><h1>Testing</h1></div>
-        </div>
-    </body>
-    <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
-    <script>
-        const $ = require('jquery');
-        require('tablesorter');
-        const mime = require('mime-types');
-        const BrowserWindow = window.require('electron').remote.BrowserWindow;
-        const process = window.require('electron').remote.process;
+    (function() {
+      configureForPlatform();
 
-        (function() {
-            configureForPlatform();
+      splitter = Split(["#results-grid", "#results-output"], {
+        sizes: [50, 50]
+      });
+      splitter.collapse(1);
 
-            var splitter = Split(['#results-grid', '#results-output'], {
-                sizes: [50, 50],
-                minSize: 300
-            });
-            splitter.collapse(1);
+      $("#results-table").tablesorter({ sortList: [[0, 0]] });
+      $("#results-output-table").tablesorter();
 
-            let table = document.getElementById('results-table');
-            $(table).tablesorter({ sortList: [[0, 0]] });
-
-            require('electron').ipcRenderer.on('ping', (event, message) => {
-                //console.log(message);
-                let file = JSON.parse(message);
-                var row = `
-                        <tr>
+      require("electron").ipcRenderer.on("ping", (event, message) => {
+        //console.log(message);
+        let file = JSON.parse(message);
+        var row = `
+                        <tr class="results-row" data-file="${file.file}">
                             <td>${file.filename}</td>
                             <td>${file.directory}</td>
                             <td>
                                 ${
-                                    mime.lookup(file.extension)
-                                        ? mime.lookup(file.extension)
-                                        : file.extension
+                                  mime.lookup(file.extension)
+                                    ? mime.lookup(file.extension)
+                                    : file.extension
                                 }
                             </td>
                             <td>${bytesToSize(file.stats.size)}</td>
@@ -125,80 +142,100 @@
                             <td>${dateFromTime(file.stats.modified)}</td>
                         </tr>
                     `;
-                $(table)
-                    .find('tbody')
-                    .append($(row))
-                    .trigger('update');
-            });
+        $("#results-table")
+          .find("tbody")
+          .append($(row));
+      });
 
-            require('electron').ipcRenderer.on('finished', event => {
-                $('#results-table').trigger('update');
-            });
-        })();
+      require("electron").ipcRenderer.on("finished", event => {
+        $("#results-table").trigger("update");
+        configureResultsRowClick();
+        $(".loader").toggleClass("hidden");
+      });
 
-        function configureForPlatform() {
-            if (process.platform == 'win32') {
-                addWindowsEventListeners();
-                $('.windows-buttons').show();
-            } else if (process.platform == 'darwin') {
-                $('.header-bar .left').addClass('darwin');
-            }
-        }
+      require("electron").ipcRenderer.on("match", (event, message) => {
+        console.log(message);
+        splitter.setSizes([50, 50]);
+        message.match.forEach(el => {
+          var row = `
+                <tr>
+                    <td>${el.number}</td>
+                    <td>
+                        <pre>${el.line}</pre>
+                    </td>
+                </tr>
+            `;
+          $("#results-output-table")
+            .find("tbody")
+            .append($(row));
+        });
+      });
+    })();
 
-        function addWindowsEventListeners() {
-            $('#close').click(_ => BrowserWindow.getFocusedWindow().close());
-            $('#maximize').click(_ => {
-                var win = BrowserWindow.getFocusedWindow();
-                win.isMaximized() ? win.unmaximize() : win.maximize();
-            });
-            $('#minimize').click(_ =>
-                BrowserWindow.getFocusedWindow().minimize()
-            );
-        }
+    function configureForPlatform() {
+      if (process.platform == "win32") {
+        addWindowsEventListeners();
+        $(".windows-buttons").show();
+      } else if (process.platform == "darwin") {
+        $(".header-bar .left").addClass("darwin");
+      }
+    }
 
-        function go() {
-            var directory = document.getElementById('directory').value;
-            var filename = document.getElementById('filename').value;
-            var containing = document.getElementById('containing').value;
+    function configureResultsRowClick() {
+      $("#results-grid").on("click", ".results-row", event => {
+        console.log(event.currentTarget);
+        console.log(previousSearch);
+        $.tablesorter.clearTableBody($("#results-output-table"));
+        sendAction("getMatches", {
+          path: $(event.currentTarget).data("file"),
+          content: previousSearch,
+          flags: []
+        });
+      });
+    }
 
-            $.tablesorter.clearTableBody($('#results-table'));
+    function addWindowsEventListeners() {
+      $("#close").click(_ => BrowserWindow.getFocusedWindow().close());
+      $("#maximize").click(_ => {
+        var win = BrowserWindow.getFocusedWindow();
+        win.isMaximized() ? win.unmaximize() : win.maximize();
+      });
+      $("#minimize").click(_ => BrowserWindow.getFocusedWindow().minimize());
+    }
 
-            sendAction('getFiles', {
-                path: directory,
-                glob: filename,
-                containing: containing
-            });
-        }
+    function go() {
+      var directory = document.getElementById("directory").value;
+      var filename = document.getElementById("filename").value;
+      var containing = document.getElementById("containing").value;
+      previousSearch = containing;
 
-        function bytesToSize(bytes, decimals = 2) {
-            if (bytes == 0) return '0 Bytes';
-            var k = 1024,
-                dm = decimals || 2,
-                sizes = [
-                    'Bytes',
-                    'KB',
-                    'MB',
-                    'GB',
-                    'TB',
-                    'PB',
-                    'EB',
-                    'ZB',
-                    'YB'
-                ],
-                i = Math.floor(Math.log(bytes) / Math.log(k));
-            return (
-                parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) +
-                ' ' +
-                sizes[i]
-            );
-        }
+      $.tablesorter.clearTableBody($("#results-table"));
+      $.tablesorter.clearTableBody($("#results-output-table"));
 
-        function dateFromTime(time) {
-            return new Date(time).toLocaleString();
-        }
+      $(".loader").toggleClass("hidden");
 
-        function sendAction(command, args) {
-            require('electron').ipcRenderer.send(command, args);
-        }
-    </script>
+      sendAction("getFiles", {
+        path: directory,
+        glob: filename,
+        containing: containing
+      });
+    }
+
+    function bytesToSize(bytes, decimals = 2) {
+      if (bytes == 0) return "0 Bytes";
+      var k = 1024,
+        dm = decimals || 2,
+        sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
+        i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+    }
+
+    function dateFromTime(time) {
+      return new Date(time).toLocaleString();
+    }
+
+    function sendAction(command, args) {
+      require("electron").ipcRenderer.send(command, args);
+    }
+  </script>
 </html>
