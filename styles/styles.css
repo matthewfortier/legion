@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css?family=Roboto+Mono");
 @font-face {
-  font-family: "Circular";
+  font-family: 'Circular';
   src: url("./assets/fonts/circular-medium.ttf");
 }
 
@@ -22,7 +22,7 @@ body {
       -ms-flex-direction: column;
           flex-direction: column;
   background-color: transparent;
-  font-family: "Circular", sans-serif;
+  font-family: 'Circular', sans-serif;
   font-weight: 500;
   overflow: hidden;
 }
@@ -33,7 +33,7 @@ body {
 
 .header-bar {
   display: block;
-  height: 38px;
+  height: 34px;
   width: 100%;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -80,6 +80,10 @@ body {
 
 .header-bar .right {
   -webkit-app-region: no-drag;
+}
+
+.header-bar .right .windows-buttons {
+  display: none;
 }
 
 .header-bar .right i:hover {
@@ -180,6 +184,16 @@ body {
 .results #results-output {
   height: 100%;
   overflow: auto;
+}
+
+.results #results-grid th {
+  text-align: left;
+  padding-right: 10px;
+}
+
+.results #results-grid td {
+  white-space: nowrap;
+  padding-right: 10px;
 }
 
 .results .gutter {

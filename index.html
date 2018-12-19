@@ -1,138 +1,204 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Hello Python from Electron!</title>
-    <link
-      rel="stylesheet"
-      href="https://use.fontawesome.com/releases/v5.6.1/css/all.css"
-      integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP"
-      crossorigin="anonymous"
-    />
-    <link rel="stylesheet" href="styles/normalize.css" />
-    <link rel="stylesheet" href="styles/styles.css" />
-  </head>
-  <body>
-    <div class="header-bar">
-      <div class="left">
-        <i onclick="go()" id="run" class="fas fa-play" title="Run Query"></i>
-        <i id="pause" class="fas fa-pause" title="Pause"></i>
-        <i id="stop" class="fas fa-stop" title="Stop"></i>
-      </div>
-      <div class="center"><span>Legion</span></div>
-      <div class="right">
-        <div v-if="os == 'win32'" class="windows-buttons">
-          <i id="minimize" class="far fa-window-minimize"></i>
-          <i id="maximize" class="far fa-window-maximize"></i>
-          <i id="close" class="far fa-window-close"></i>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Hello Python from Electron!</title>
+        <link
+            rel="stylesheet"
+            href="https://use.fontawesome.com/releases/v5.6.1/css/all.css"
+            integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="styles/normalize.css" />
+        <link rel="stylesheet" href="styles/styles.css" />
+    </head>
+    <body>
+        <div class="header-bar">
+            <div class="left">
+                <i
+                    onclick="go()"
+                    id="run"
+                    class="fas fa-play"
+                    title="Run Query"
+                ></i>
+                <i id="pause" class="fas fa-pause" title="Pause"></i>
+                <i id="stop" class="fas fa-stop" title="Stop"></i>
+            </div>
+            <div class="center"><span>Legion</span></div>
+            <div class="right">
+                <div class="windows-buttons">
+                    <i id="minimize" class="far fa-window-minimize"></i>
+                    <i id="maximize" class="far fa-window-maximize"></i>
+                    <i id="close" class="far fa-window-close"></i>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <div class="query-builder">
-      <div class="input">
-        <span>Directory:</span>
-        <input
-          id="directory"
-          type="text"
-          placeholder="Root directory..."
-          value="C:/Source/Noting/"
-        />
-        <div class="options"></div>
-      </div>
-      <div class="input">
-        <span>Filename:</span>
-        <input
-          id="filename"
-          type="text"
-          placeholder="Glob patterns..."
-          value="**/*.html"
-        />
-        <div class="options"></div>
-      </div>
-      <div class="input">
-        <span>Containing:</span>
-        <input
-          id="containing"
-          type="text"
-          placeholder="Containing text or expression..."
-          value="Note"
-        />
-        <div class="options"></div>
-      </div>
-    </div>
+        <div class="query-builder">
+            <div class="input">
+                <span>Directory:</span>
+                <input
+                    id="directory"
+                    type="text"
+                    placeholder="Root directory..."
+                    value="/Users/matthewfortier/Documents/code/legion/"
+                />
+                <div class="options"></div>
+            </div>
+            <div class="input">
+                <span>Filename:</span>
+                <input
+                    id="filename"
+                    type="text"
+                    placeholder="Glob patterns..."
+                    value="**/*.scss"
+                />
+                <div class="options"></div>
+            </div>
+            <div class="input">
+                <span>Containing:</span>
+                <input
+                    id="containing"
+                    type="text"
+                    placeholder="Containing text or expression..."
+                    value=""
+                />
+                <div class="options"></div>
+            </div>
+        </div>
 
-    <div class="results">
-      <div id="results-grid">
-        <table id="results-table">
-          <thead>
-            <tr>
-              <th>Filename</th>
-            </tr>
-          </thead>
-          <tbody id="results-table-body"></tbody>
-        </table>
-      </div>
-      <div id="results-output"><h1>Testing</h1></div>
-    </div>
-  </body>
-  <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
-  <script>
-    const $ = require("jquery");
-    require("tablesorter");
-    const BrowserWindow = window.require("electron").remote.BrowserWindow;
+        <div class="results">
+            <div id="results-grid">
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Path</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Accessed</th>
+                            <th>Modified</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body"></tbody>
+                </table>
+            </div>
+            <div id="results-output"><h1>Testing</h1></div>
+        </div>
+    </body>
+    <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+    <script>
+        const $ = require('jquery');
+        require('tablesorter');
+        const mime = require('mime-types');
+        const BrowserWindow = window.require('electron').remote.BrowserWindow;
+        const process = window.require('electron').remote.process;
 
-    (function() {
-      addWindowsEventListeners();
+        (function() {
+            configureForPlatform();
 
-      var splitter = Split(["#results-grid", "#results-output"], {
-        sizes: [50, 50],
-        minSize: 300
-      });
-      splitter.collapse(1);
+            var splitter = Split(['#results-grid', '#results-output'], {
+                sizes: [50, 50],
+                minSize: 300
+            });
+            splitter.collapse(1);
 
-      let table = document.getElementById("results-table");
-      $(table).tablesorter({ sortList: [[0, 0]] });
+            let table = document.getElementById('results-table');
+            $(table).tablesorter({ sortList: [[0, 0]] });
 
-      require("electron").ipcRenderer.on("ping", (event, message) => {
-        console.log(message);
-        var row = `
-                                          <tr>
-                                            <td>${message}</td>
-                                          </tr>
-                                        `;
-        $(table)
-          .find("tbody")
-          .append($(row));
-        //.trigger("addRows", [$(row), true]);
-      });
-    })();
+            require('electron').ipcRenderer.on('ping', (event, message) => {
+                //console.log(message);
+                let file = JSON.parse(message);
+                var row = `
+                        <tr>
+                            <td>${file.filename}</td>
+                            <td>${file.directory}</td>
+                            <td>
+                                ${
+                                    mime.lookup(file.extension)
+                                        ? mime.lookup(file.extension)
+                                        : file.extension
+                                }
+                            </td>
+                            <td>${bytesToSize(file.stats.size)}</td>
+                            <td>${dateFromTime(file.stats.access)}</td>
+                            <td>${dateFromTime(file.stats.modified)}</td>
+                        </tr>
+                    `;
+                $(table)
+                    .find('tbody')
+                    .append($(row))
+                    .trigger('update');
+            });
 
-    function addWindowsEventListeners() {
-      $("#close").click(_ => BrowserWindow.getFocusedWindow().close());
-      $("#maximize").click(_ => {
-        var win = BrowserWindow.getFocusedWindow();
-        win.isMaximized() ? win.unmaximize() : win.maximize();
-      });
-      $("#minimize").click(_ => BrowserWindow.getFocusedWindow().minimize());
-    }
+            require('electron').ipcRenderer.on('finished', event => {
+                $('#results-table').trigger('update');
+            });
+        })();
 
-    function go() {
-      var directory = document.getElementById("directory").value;
-      var filename = document.getElementById("filename").value;
-      var containing = document.getElementById("containing").value;
+        function configureForPlatform() {
+            if (process.platform == 'win32') {
+                addWindowsEventListeners();
+                $('.windows-buttons').show();
+            } else if (process.platform == 'darwin') {
+                $('.header-bar .left').addClass('darwin');
+            }
+        }
 
-      //document.getElementById("results-table-body").innerHTML = "";
+        function addWindowsEventListeners() {
+            $('#close').click(_ => BrowserWindow.getFocusedWindow().close());
+            $('#maximize').click(_ => {
+                var win = BrowserWindow.getFocusedWindow();
+                win.isMaximized() ? win.unmaximize() : win.maximize();
+            });
+            $('#minimize').click(_ =>
+                BrowserWindow.getFocusedWindow().minimize()
+            );
+        }
 
-      sendAction("getFiles", {
-        path: directory,
-        glob: filename,
-        containing: containing
-      });
-    }
+        function go() {
+            var directory = document.getElementById('directory').value;
+            var filename = document.getElementById('filename').value;
+            var containing = document.getElementById('containing').value;
 
-    function sendAction(command, args) {
-      require("electron").ipcRenderer.send(command, args);
-    }
-  </script>
+            $.tablesorter.clearTableBody($('#results-table'));
+
+            sendAction('getFiles', {
+                path: directory,
+                glob: filename,
+                containing: containing
+            });
+        }
+
+        function bytesToSize(bytes, decimals = 2) {
+            if (bytes == 0) return '0 Bytes';
+            var k = 1024,
+                dm = decimals || 2,
+                sizes = [
+                    'Bytes',
+                    'KB',
+                    'MB',
+                    'GB',
+                    'TB',
+                    'PB',
+                    'EB',
+                    'ZB',
+                    'YB'
+                ],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (
+                parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) +
+                ' ' +
+                sizes[i]
+            );
+        }
+
+        function dateFromTime(time) {
+            return new Date(time).toLocaleString();
+        }
+
+        function sendAction(command, args) {
+            require('electron').ipcRenderer.send(command, args);
+        }
+    </script>
 </html>

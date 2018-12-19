@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "jquery": "^3.3.1",
+    "mime-types": "^2.1.21",
     "python-shell": "^0.5.0",
     "tablesorter": "^2.31.1"
   }
