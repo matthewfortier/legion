@@ -1,9 +1,31 @@
 @import "./themes.scss";
 @import url("https://fonts.googleapis.com/css?family=Roboto+Mono");
+@import url("https://fonts.googleapis.com/css?family=Karla");
 
 @font-face {
   font-family: "Circular";
   src: url("./assets/fonts/circular-medium.ttf");
+}
+
+@mixin dt-display-flex {
+  display: -webkit-flex; // support for responsive scroll-y
+  display: -ms-flexbox;
+  display: flex;
+}
+@mixin dt-flex-11a {
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+}
+@mixin dt-flex-100 {
+  -webkit-flex: 1 0 0px;
+  -ms-flex: 1 0 0px;
+  flex: 1 0 0px;
+}
+@mixin dt-flex-vertical {
+  -webkit-flex-flow: column nowrap;
+  -ms-flex-flow: column nowrap;
+  flex-flow: column nowrap;
 }
 
 body {
@@ -16,7 +38,7 @@ body {
   flex-direction: column;
   background-color: transparent;
 
-  font-family: "Circular", sans-serif;
+  font-family: "Karla", sans-serif;
   font-weight: 500;
 
   overflow: hidden;
@@ -37,25 +59,33 @@ body {
   user-select: none;
   background-color: $header-color;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  border-bottom: 1px solid #545454;
+  //border-bottom: 1px solid #545454;
+
+  // Top Border Radius
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
 
   span {
     font-size: 12px;
     white-space: nowrap;
   }
+
   .left {
     padding-left: 10px;
     -webkit-app-region: no-drag;
+
     &.darwin {
       padding-left: 75px;
     }
   }
+
   .center {
     position: absolute;
     width: 200px;
     text-align: center;
     left: calc(50% - 100px);
   }
+
   .right {
     -webkit-app-region: no-drag;
 
@@ -73,26 +103,31 @@ body {
       }
       &:nth-child(3):hover {
         background-color: $windows-close-hover;
+        border-top-right-radius: 7px;
       }
       &:nth-child(3):active {
         background-color: $windows-close-active;
+        border-top-right-radius: 7px;
       }
       .light-theme & {
         color: white;
       }
     }
   }
+
   i {
     padding: 0 7.5px;
     height: 38px;
     line-height: 38px;
     cursor: pointer;
   }
+
   #run,
   #pause,
   #stop,
   #gear {
     color: $accent-color;
+
     .light-theme & {
       color: white;
     }
@@ -108,7 +143,7 @@ body {
   }
 
   .input {
-    height: 36px;
+    height: 28px;
     border: 1px solid $input-border-color;
     border-radius: 3px;
     display: flex;
@@ -116,6 +151,7 @@ body {
     margin: 10px 10px;
     display: flex;
     justify-content: space-between;
+    background-color: lighten($query-builder-background, 2);
 
     input {
       flex: 1;
@@ -132,6 +168,21 @@ body {
       text-transform: uppercase;
       user-select: none;
     }
+
+    .options {
+      i {
+        margin-right: 10px;
+        margin-left: 10px;
+        color: $accent-color;
+        cursor: pointer;
+        justify-content: flex-end;
+        line-height: 36px;
+
+        &.off {
+          color: #464646;
+        }
+      }
+    }
   }
 }
 
@@ -139,14 +190,21 @@ body {
   display: flex;
   flex: 1;
   background-color: $body-color;
+  border-top: 1px solid #545454;
 
   #results-grid,
   #results-output {
     height: 100%;
+    width: 100%;
     overflow: auto;
   }
 
   #results-grid {
+    text-align: left;
+    #results-table {
+      border-collapse: collapse;
+    }
+
     th {
       white-space: nowrap;
       //background-color: $results-grid-header-color;
@@ -169,10 +227,12 @@ body {
 
     td {
       white-space: nowrap;
-      border-top: 1px solid #4f4f4f;
+      border-bottom: 1px solid #4f4f4f;
       padding-right: 15px;
       padding-left: 10px;
       user-select: none;
+      font-size: 0.85em;
+      background-color: #363636;
 
       &:nth-child(1) {
         padding-right: 5px;
@@ -193,7 +253,7 @@ body {
       }
     }
     tbody tr:hover {
-      background-color: #4f4f4f;
+      background-color: #424242;
       cursor: pointer;
     }
 
@@ -217,6 +277,8 @@ body {
   #results-output {
     table {
       width: 100%;
+      overflow: hidden;
+      border-collapse: collapse;
     }
 
     th {
@@ -233,9 +295,13 @@ body {
       }
     }
 
-    tbody tr:hover {
-      background-color: #4f4f4f;
-      cursor: pointer;
+    tbody tr {
+      height: 21px;
+
+      &:hover {
+        background-color: #4f4f4f;
+        cursor: pointer;
+      }
     }
 
     td {
@@ -245,6 +311,7 @@ body {
       padding-left: 15px;
       border-top: 1px solid #4f4f4f;
       z-index: -1;
+      font-size: 0.8em;
 
       .light-theme & {
         border-color: $td-border-color-light;
@@ -257,10 +324,21 @@ body {
     }
 
     pre {
+      font-family: "Roboto Mono", sans-serif;
+      font-size: 0.9em;
       color: white;
       margin: 0;
       padding: 0;
 
+      .light-theme & {
+        color: black;
+      }
+    }
+
+    .highlightText {
+      //background: $match-highlight-text-color;
+      color: $accent-color-light;
+      font-weight: bold;
       .light-theme & {
         color: black;
       }
@@ -309,6 +387,10 @@ body {
   justify-content: space-between;
   background-color: $header-color;
 
+  // Window Border Radius
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+
   .divider {
     display: block;
     width: 0px;
@@ -318,52 +400,6 @@ body {
     border-left: 1px solid #2f374a;
   }
 
-  .loader {
-    height: 100px;
-    width: 100px;
-    transform: scale(0.2);
-    margin-top: -3px;
-    margin-left: -32px;
-    position: absolute;
-
-    &.hidden {
-      display: none;
-    }
-  }
-
-  .loader1 {
-    height: 100%;
-    width: 100%;
-    position: relative;
-
-    div:nth-child(1) {
-      top: 0;
-      left: 0;
-      position: absolute;
-      height: 100%;
-      width: 100%;
-      border-radius: 50%;
-      border: 10px solid $accent-color;
-      border-left: 10px solid transparent;
-      animation: spinForwards 2s linear infinite;
-    }
-
-    div:nth-child(2) {
-      top: 0;
-      left: 0;
-      margin-left: 10%;
-      margin-top: 10%;
-      position: absolute;
-      height: 80%;
-      width: 80%;
-      border-radius: 50%;
-      border: 10px solid $accent-color-light;
-      border-left: 10px solid transparent;
-      border-bottom: 10px solid transparent;
-      animation: spinForwards 1s linear infinite;
-    }
-  }
-
   .left {
     padding-left: 10px;
 
@@ -371,13 +407,10 @@ body {
       padding-left: 34px;
     }
   }
-  .right {
-    padding-right: 10px;
-    display: flex;
-    justify-content: flex-end;
 
-    span {
-      margin-left: 15px;
+  #footer-ready {
+    &.hidden {
+      display: none;
     }
   }
 
@@ -388,6 +421,52 @@ body {
     100% {
       transform: rotate(360deg);
     }
+  }
+}
+
+.loader {
+  height: 100px;
+  width: 100px;
+  transform: scale(0.2);
+  margin-top: -37px;
+  margin-left: -68px;
+  position: absolute;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.loader1 {
+  height: 100%;
+  width: 100%;
+  position: relative;
+
+  div:nth-child(1) {
+    top: 0;
+    left: 0;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    border: 10px solid $accent-color;
+    border-left: 10px solid transparent;
+    animation: spinForwards 2s linear infinite;
+  }
+
+  div:nth-child(2) {
+    top: 0;
+    left: 0;
+    margin-left: 10%;
+    margin-top: 10%;
+    position: absolute;
+    height: 80%;
+    width: 80%;
+    border-radius: 50%;
+    border: 10px solid $accent-color-light;
+    border-left: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    animation: spinForwards 1s linear infinite;
   }
 }
 
@@ -425,4 +504,41 @@ body {
 
 ::-webkit-scrollbar-corner {
   background-color: $body-color;
+}
+
+/* DataTables */
+.dataTable {
+  border-collapse: collapse;
+}
+
+.dataTables_length {
+  display: none !important;
+}
+
+#results-table_wrapper {
+  position: relative;
+}
+
+#results-table_paginate {
+  display: none !important;
+}
+
+.dataTables_filter {
+  float: right;
+  padding-right: 2px;
+  padding-top: 1px;
+  label {
+    border: 1px solid #4f4f4f;
+    color: white;
+    font-size: 0.75em;
+    padding-left: 2px;
+
+    input {
+      border: none;
+      color: white;
+      background-color: transparent;
+      outline: none;
+      padding-left: 5px;
+    }
+  }
 }

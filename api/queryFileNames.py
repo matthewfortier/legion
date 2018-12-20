@@ -8,7 +8,31 @@ import mmap
 def getFiles(path, containing):
     answer = glob.glob(path, recursive=True)
     contains = []
-    # print(len(answer))
+
+    searching = {"searching": len(answer)}
+    print(json.dumps(searching, default=lambda o: o.__dict__))
+    sys.stdout.flush()
+
+    if containing == "":
+        for file in answer:
+            info = os.stat(file)
+            filename, file_extension = os.path.splitext(file)
+            directory = os.path.dirname(file)
+            obj = {
+                "file": file,
+                "filename": file.replace(directory, '')[1:],
+                "directory": directory,
+                "extension": file_extension,
+                "stats": {
+                    "size": info.st_size,
+                    "access": info.st_atime,
+                    "modified": info.st_mtime
+                }
+            }
+            print(json.dumps(obj, default=lambda o: o.__dict__))
+
+        return
+
     for file in answer:
         try:
             with open(file, 'rb', 0) as f, \
@@ -34,12 +58,6 @@ def getFiles(path, containing):
         except BaseException:
             pass
             #print("Couldn't open file... oh well")
-
-    return {
-        "count": len(contains),
-        "searched": len(answer),
-        "files": contains
-    }
 
 
 def read_in():

@@ -38,7 +38,16 @@
           placeholder="Root directory..."
           value="C:/Source/Noting/"
         />
-        <div class="options"></div>
+        <div class="options">
+          <i
+            onclick="browse()"
+            id="loadPath"
+            class="fas fa-folder-open"
+            data-toggle="tooltip"
+            data-placement="bottom"
+            title="Browse..."
+          ></i>
+        </div>
       </div>
       <div class="input">
         <span>Filename:</span>
@@ -93,75 +102,105 @@
     </div>
 
     <div class="footer-bar">
-      <div class="loader hidden">
-        <div class="loader1">
-          <div></div>
-          <div></div>
+      <div class="left">
+        <div id="footer-loader" class="loader hidden">
+          <div class="loader1">
+            <div></div>
+            <div></div>
+          </div>
         </div>
+        <span id="footer-ready">Ready</span>
       </div>
+      <div class="right"></div>
     </div>
   </body>
   <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
   <script>
     const $ = require("jquery");
+    const dt = require("datatables.net")();
+    const path = require("path");
+    require("datatables.net-scroller")(window, $);
     require("tablesorter");
     const mime = require("mime-types");
     const BrowserWindow = window.require("electron").remote.BrowserWindow;
     const process = window.require("electron").remote.process;
+    const PythonShell = require("python-shell");
     var splitter;
+    var results;
+
+    let options = {
+      pythonPath:
+        "C:/Users/M779668/AppData/Local/Programs/Python/Python37-32/python.exe",
+      pythonOptions: ["-u"] // get print results in real-time
+    };
 
     var previousSearch = "";
 
     (function() {
       configureForPlatform();
+      configureResultsRowClick();
 
       splitter = Split(["#results-grid", "#results-output"], {
-        sizes: [50, 50]
+        sizes: [50, 50],
+        minSize: 0
       });
       splitter.collapse(1);
 
-      $("#results-table").tablesorter({ sortList: [[0, 0]] });
+      results = $("#results-table").DataTable({
+        info: false,
+        pageLength: 500,
+        deferRender: true,
+        scrollY: 100,
+        scroller: {
+          displayBuffer: 100
+        },
+        createdRow: function(row, data, dataIndex) {
+          $(row).attr("data-file", data.filename);
+        }
+      });
+
+      //$("#results-table").tablesorter({ sortList: [[0, 0]] });
       $("#results-output-table").tablesorter();
 
       require("electron").ipcRenderer.on("ping", (event, message) => {
         //console.log(message);
         let file = JSON.parse(message);
-        var row = `
-                        <tr class="results-row" data-file="${file.file}">
-                            <td>${file.filename}</td>
-                            <td>${file.directory}</td>
-                            <td>
-                                ${
-                                  mime.lookup(file.extension)
-                                    ? mime.lookup(file.extension)
-                                    : file.extension
-                                }
-                            </td>
-                            <td>${bytesToSize(file.stats.size)}</td>
-                            <td>${dateFromTime(file.stats.access)}</td>
-                            <td>${dateFromTime(file.stats.modified)}</td>
-                        </tr>
-                    `;
-        $("#results-table")
-          .find("tbody")
-          .append($(row));
+
+        if (file.searching) {
+          updateFooterBar(file.searching);
+          return;
+        }
+
+        results.row
+          .add([
+            file.filename,
+            file.directory,
+            mime.lookup(file.extension)
+              ? mime.lookup(file.extension)
+              : file.extension,
+            bytesToSize(file.stats.size),
+            dateFromTime(file.stats.access),
+            dateFromTime(file.stats.modified)
+          ])
+          .draw(false);
       });
 
       require("electron").ipcRenderer.on("finished", event => {
-        $("#results-table").trigger("update");
-        configureResultsRowClick();
-        $(".loader").toggleClass("hidden");
+        toggleState();
+      });
+
+      require("electron").ipcRenderer.on("directory", (event, directory) => {
+        document.getElementById("directory").value = directory;
       });
 
       require("electron").ipcRenderer.on("match", (event, message) => {
-        console.log(message);
         splitter.setSizes([50, 50]);
         message.match.forEach(el => {
           var row = `
                 <tr>
                     <td>${el.number}</td>
                     <td>
-                        <pre>${el.line}</pre>
+                        <pre>${highlight(el.line, previousSearch)}</pre>
                     </td>
                 </tr>
             `;
@@ -182,16 +221,32 @@
     }
 
     function configureResultsRowClick() {
-      $("#results-grid").on("click", ".results-row", event => {
-        console.log(event.currentTarget);
-        console.log(previousSearch);
-        $.tablesorter.clearTableBody($("#results-output-table"));
-        sendAction("getMatches", {
-          path: $(event.currentTarget).data("file"),
-          content: previousSearch,
-          flags: []
-        });
-      });
+      $("#results-grid").on(
+        "click",
+        "#results-table-body [role=row]",
+        event => {
+          $.tablesorter.clearTableBody($("#results-output-table"));
+
+          var filename = $(event.currentTarget)
+            .find("td:nth-child(1)")
+            .text();
+          var directory = $(event.currentTarget)
+            .find("td:nth-child(2)")
+            .text();
+
+          console.log(filename);
+          console.log(directory);
+          sendAction("getMatches", {
+            path: path.join(directory, filename),
+            content: previousSearch,
+            flags: []
+          });
+        }
+      );
+    }
+
+    function getGridHeight() {
+      return $("#results-grid").height() - 37;
     }
 
     function addWindowsEventListeners() {
@@ -209,15 +264,84 @@
       var containing = document.getElementById("containing").value;
       previousSearch = containing;
 
-      $.tablesorter.clearTableBody($("#results-table"));
+      results.clear().draw();
       $.tablesorter.clearTableBody($("#results-output-table"));
 
-      $(".loader").toggleClass("hidden");
+      toggleState();
 
-      sendAction("getFiles", {
-        path: directory,
-        glob: filename,
-        containing: containing
+      var shell = new PythonShell("api/queryFileNames.py", options);
+      shell.send(
+        JSON.stringify({
+          command: "getFiles",
+          path: directory,
+          glob: filename,
+          containing: containing
+        })
+      );
+
+      let rows = [];
+
+      shell.on("message", function(message) {
+        // received a message sent from the Python script (a simple "print" statement)
+        let file = JSON.parse(message);
+
+        if (file.searching) {
+          updateFooterBar(file.searching);
+          return;
+        }
+
+        rows.push([
+          file.filename,
+          file.directory,
+          mime.lookup(file.extension)
+            ? mime.lookup(file.extension)
+            : file.extension,
+          bytesToSize(file.stats.size),
+          dateFromTime(file.stats.access),
+          dateFromTime(file.stats.modified)
+        ]);
+      });
+
+      // end the input stream and allow the process to exit
+      shell.end(function(err) {
+        if (err) {
+          throw err;
+        }
+
+        results
+          .clear()
+          .rows.add(rows)
+          .draw();
+
+        rows = [];
+        toggleState();
+        resizeResultsGrid();
+      });
+    }
+
+    function updateFooterBar(searching) {
+      $("#footer-ready").text(`Searching ${searching} files...`);
+    }
+
+    function toggleState() {
+      $("#footer-loader").toggleClass("hidden");
+      $(".footer-bar .left").toggleClass("loading");
+
+      if ($("#footer-ready").text() != "Ready") {
+        $("#footer-ready").text("Ready");
+      } else {
+        $("#footer-ready").text("Searching...");
+      }
+    }
+
+    function browse() {
+      sendAction("browse");
+    }
+
+    function highlight(line, query) {
+      var check = new RegExp(escape(query), "ig");
+      return line.toString().replace(check, matchedText => {
+        return "<span class='highlightText'>" + matchedText + "</span>";
       });
     }
 
@@ -234,8 +358,14 @@
       return new Date(time).toLocaleString();
     }
 
-    function sendAction(command, args) {
+    function sendAction(command, args = {}) {
       require("electron").ipcRenderer.send(command, args);
     }
+
+    function resizeResultsGrid() {
+      $("div.dataTables_scrollBody").height(getGridHeight());
+    }
+
+    window.addEventListener("resize", resizeResultsGrid);
   </script>
 </html>

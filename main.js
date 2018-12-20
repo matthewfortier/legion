@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const fs = require("file-system");
 var lineNumber = require("line-number");
 
@@ -6,7 +6,8 @@ let win;
 var PythonShell = require("python-shell");
 let options = {
   pythonPath:
-    "C:/Users/M779668/AppData/Local/Programs/Python/Python37-32/python.exe"
+    "C:/Users/M779668/AppData/Local/Programs/Python/Python37-32/python.exe",
+  pythonOptions: ["-u"] // get print results in real-time
 };
 
 function createWindow() {
@@ -34,7 +35,8 @@ ipcMain.on("getFiles", (event, args) => {
   );
   shell.on("message", function(message) {
     // received a message sent from the Python script (a simple "print" statement)
-    win.webContents.send("ping", message);
+    console.log(message);
+    //win.webContents.send("ping", message);
   });
 
   // end the input stream and allow the process to exit
@@ -42,7 +44,7 @@ ipcMain.on("getFiles", (event, args) => {
     if (err) {
       throw err;
     }
-
+    console.log("finished");
     win.webContents.send("finished");
   });
 });
@@ -57,6 +59,14 @@ ipcMain.on("getMatches", (event, args) => {
     file: filename,
     match: match
   });
+});
+
+ipcMain.on("browse", (event, args) => {
+  console.log("Browsing");
+  var path = dialog.showOpenDialog(win, {
+    properties: ["openDirectory", "multiSelections"]
+  });
+  if (path) event.sender.send("directory", path.join(","));
 });
 
 app.on("ready", createWindow);
