@@ -2,10 +2,12 @@
   "name": "electronjs-python",
   "version": "1.0.0",
   "description": "",
+  "productName": "Legion",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-packager . --out=builds --overwrite"
   },
   "keywords": [],
   "author": "",
@@ -18,7 +20,9 @@
     "datatables.net": "^1.10.19",
     "datatables.net-dt": "^1.10.19",
     "datatables.net-scroller": "^1.5.1",
+    "electron-debug": "^2.0.0",
     "file-system": "^2.2.2",
+    "hirestime": "^3.2.1",
     "jquery": "^3.3.1",
     "line-number": "^0.1.0",
     "mime-types": "^2.1.21",

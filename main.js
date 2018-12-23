@@ -1,8 +1,18 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  BrowserView,
+  ipcMain,
+  dialog
+} = require("electron");
 const fs = require("file-system");
 var lineNumber = require("line-number");
 
+require("electron-debug")();
+
 let win;
+let views = [];
+let viewIndex = 0;
 var PythonShell = require("python-shell");
 let options = {
   pythonPath:
@@ -12,7 +22,7 @@ let options = {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1200,
+    width: 1600,
     height: 800,
     minHeight: 600,
     minWidth: 800,
@@ -20,34 +30,17 @@ function createWindow() {
     transparent: true,
     titleBarStyle: process.platform == "darwin" ? "hiddenInset" : "default"
   });
-  win.loadFile("index.html");
-}
-
-ipcMain.on("getFiles", (event, args) => {
-  var shell = new PythonShell("api/queryFileNames.py", options);
-  shell.send(
-    JSON.stringify({
-      command: "getFiles",
-      path: args.path,
-      glob: args.glob,
-      containing: args.containing
-    })
-  );
-  shell.on("message", function(message) {
-    // received a message sent from the Python script (a simple "print" statement)
-    console.log(message);
-    //win.webContents.send("ping", message);
-  });
-
-  // end the input stream and allow the process to exit
-  shell.end(function(err) {
-    if (err) {
-      throw err;
+  //win.loadFile("index.html");
+  let view = new BrowserView({
+    webPreferences: {
+      nodeIntegration: true
     }
-    console.log("finished");
-    win.webContents.send("finished");
   });
-});
+  win.setBrowserView(view);
+  view.setBounds({ x: 0, y: 0, width: 1600, height: 800 });
+  view.webContents.loadFile("index.html");
+  views.push(view);
+}
 
 ipcMain.on("getMatches", (event, args) => {
   var data = fs.readFileSync(args.path, "utf8");
@@ -67,6 +60,31 @@ ipcMain.on("browse", (event, args) => {
     properties: ["openDirectory", "multiSelections"]
   });
   if (path) event.sender.send("directory", path.join(","));
+});
+
+ipcMain.on("ondragstart", (event, filePath) => {
+  console.log(filePath);
+  event.sender.startDrag({
+    file: filePath,
+    icon: "./assets/vertical.png"
+  });
+});
+
+ipcMain.on("newTab", event => {
+  let view = new BrowserView({
+    webPreferences: {
+      nodeIntegration: true
+    }
+  });
+  win.setBrowserView(view);
+  view.setBounds({ x: 0, y: 0, width: 1600, height: 800 });
+  view.webContents.loadFile("index.html");
+  views.push(view);
+});
+
+ipcMain.on("cycleTabs", event => {
+  viewIndex = (viewIndex + 1) % views.length;
+  win.setBrowserView(views[viewIndex]);
 });
 
 app.on("ready", createWindow);

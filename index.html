@@ -15,357 +15,132 @@
   <body>
     <div class="header-bar">
       <div class="left">
-        <i onclick="go()" id="run" class="fas fa-play" title="Run Query"></i>
-        <i id="pause" class="fas fa-pause" title="Pause"></i>
-        <i id="stop" class="fas fa-stop" title="Stop"></i>
+        <i
+          onclick="executeQuery()"
+          id="run"
+          class="fas fa-play"
+          title="Run Query"
+        ></i>
+        <i onclick="newTab()" id="pause" class="fas fa-pause" title="Pause"></i>
+        <i
+          onclick="sendAction('cycleTabs')"
+          id="stop"
+          class="fas fa-stop"
+          title="Stop"
+        ></i>
       </div>
       <div class="center"><span>Legion</span></div>
       <div class="right">
         <div class="windows-buttons">
-          <i id="minimize" class="far fa-window-minimize"></i>
+          <!--<i id="minimize" class="far fa-window-minimize"></i>
           <i id="maximize" class="far fa-window-maximize"></i>
-          <i id="close" class="fas fa-times"></i>
+          <i id="close" class="fas fa-times"></i>-->
+          <div class="windows-icon-bg"><div id="minimize"></div></div>
+          <div class="windows-icon-bg"><div id="maximize"></div></div>
+          <div class="windows-icon-bg"><div id="close"></div></div>
         </div>
       </div>
     </div>
 
-    <div class="query-builder">
-      <div class="input">
-        <span>Directory:</span>
-        <input
-          id="directory"
-          type="text"
-          placeholder="Root directory..."
-          value="C:/Source/Noting/"
-        />
-        <div class="options">
-          <i
-            onclick="browse()"
-            id="loadPath"
-            class="fas fa-folder-open"
-            data-toggle="tooltip"
-            data-placement="bottom"
-            title="Browse..."
-          ></i>
+    <div class="main-content">
+      <div class="sidebar"></div>
+      <div class="content">
+        <div class="query-builder">
+          <div class="input">
+            <span>Directory:</span>
+            <input
+              id="directory"
+              type="text"
+              placeholder="Root directory..."
+              value="C:/Source/Noting/"
+            />
+            <div class="options">
+              <i
+                onclick="browseFileSystem()"
+                id="loadPath"
+                class="fas fa-folder-open"
+                data-toggle="tooltip"
+                data-placement="bottom"
+                title="Browse..."
+              ></i>
+            </div>
+          </div>
+          <div class="input">
+            <span>Filename:</span>
+            <input
+              id="filename"
+              type="text"
+              placeholder="Glob patterns..."
+              value="**/*.scss"
+            />
+            <div class="options"></div>
+          </div>
+          <div class="input">
+            <span>Containing:</span>
+            <input
+              id="containing"
+              type="text"
+              placeholder="Containing text or expression..."
+              value=""
+            />
+            <div class="options"></div>
+          </div>
         </div>
-      </div>
-      <div class="input">
-        <span>Filename:</span>
-        <input
-          id="filename"
-          type="text"
-          placeholder="Glob patterns..."
-          value="**/*.scss"
-        />
-        <div class="options"></div>
-      </div>
-      <div class="input">
-        <span>Containing:</span>
-        <input
-          id="containing"
-          type="text"
-          placeholder="Containing text or expression..."
-          value=""
-        />
-        <div class="options"></div>
-      </div>
-    </div>
 
-    <div class="results">
-      <div id="results-grid">
-        <table id="results-table">
-          <thead>
-            <tr>
-              <th>Filename</th>
-              <th>Path</th>
-              <th>Type</th>
-              <th>Size</th>
-              <th>Accessed</th>
-              <th>Modified</th>
-            </tr>
-          </thead>
-          <tbody id="results-table-body"></tbody>
-        </table>
-      </div>
+        <div class="results">
+          <div id="results-grid">
+            <table id="results-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Filename</th>
+                  <th>Path</th>
+                  <th>Type</th>
+                  <th>Size</th>
+                  <th>Accessed</th>
+                  <th>Modified</th>
+                </tr>
+              </thead>
+              <tbody id="results-table-body"></tbody>
+            </table>
+          </div>
 
-      <div id="results-output">
-        <table id="results-output-table">
-          <thead>
-            <tr>
-              <th colspan="2">File Header</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+          <div id="results-output">
+            <table id="results-output-table">
+              <thead>
+                <tr>
+                  <th id="file-path" colspan="2"></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="footer-bar">
       <div class="left">
-        <div id="footer-loader" class="loader hidden">
+        <!--<div id="footer-loader" class="loader hidden">
           <div class="loader1">
             <div></div>
             <div></div>
           </div>
+        </div>-->
+        <div id="footer-progress">
+          <div id="footer-progress-bar"></div>
+          <span id="footer-progress-text"></span>
         </div>
         <span id="footer-ready">Ready</span>
       </div>
-      <div class="right"></div>
+      <div class="right">
+        <span id="time"></span> <span id="found"></span>
+        <span id="searched"></span>
+      </div>
     </div>
   </body>
   <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
-  <script>
-    const $ = require("jquery");
-    const dt = require("datatables.net")();
-    const path = require("path");
-    require("datatables.net-scroller")(window, $);
-    require("tablesorter");
-    const mime = require("mime-types");
-    const BrowserWindow = window.require("electron").remote.BrowserWindow;
-    const process = window.require("electron").remote.process;
-    const PythonShell = require("python-shell");
-    var splitter;
-    var results;
-
-    let options = {
-      pythonPath:
-        "C:/Users/M779668/AppData/Local/Programs/Python/Python37-32/python.exe",
-      pythonOptions: ["-u"] // get print results in real-time
-    };
-
-    var previousSearch = "";
-
-    (function() {
-      configureForPlatform();
-      configureResultsRowClick();
-
-      splitter = Split(["#results-grid", "#results-output"], {
-        sizes: [50, 50],
-        minSize: 0
-      });
-      splitter.collapse(1);
-
-      results = $("#results-table").DataTable({
-        info: false,
-        pageLength: 500,
-        deferRender: true,
-        scrollY: 100,
-        scroller: {
-          displayBuffer: 100
-        },
-        createdRow: function(row, data, dataIndex) {
-          $(row).attr("data-file", data.filename);
-        }
-      });
-
-      //$("#results-table").tablesorter({ sortList: [[0, 0]] });
-      $("#results-output-table").tablesorter();
-
-      require("electron").ipcRenderer.on("ping", (event, message) => {
-        //console.log(message);
-        let file = JSON.parse(message);
-
-        if (file.searching) {
-          updateFooterBar(file.searching);
-          return;
-        }
-
-        results.row
-          .add([
-            file.filename,
-            file.directory,
-            mime.lookup(file.extension)
-              ? mime.lookup(file.extension)
-              : file.extension,
-            bytesToSize(file.stats.size),
-            dateFromTime(file.stats.access),
-            dateFromTime(file.stats.modified)
-          ])
-          .draw(false);
-      });
-
-      require("electron").ipcRenderer.on("finished", event => {
-        toggleState();
-      });
-
-      require("electron").ipcRenderer.on("directory", (event, directory) => {
-        document.getElementById("directory").value = directory;
-      });
-
-      require("electron").ipcRenderer.on("match", (event, message) => {
-        splitter.setSizes([50, 50]);
-        message.match.forEach(el => {
-          var row = `
-                <tr>
-                    <td>${el.number}</td>
-                    <td>
-                        <pre>${highlight(el.line, previousSearch)}</pre>
-                    </td>
-                </tr>
-            `;
-          $("#results-output-table")
-            .find("tbody")
-            .append($(row));
-        });
-      });
-    })();
-
-    function configureForPlatform() {
-      if (process.platform == "win32") {
-        addWindowsEventListeners();
-        $(".windows-buttons").show();
-      } else if (process.platform == "darwin") {
-        $(".header-bar .left").addClass("darwin");
-      }
-    }
-
-    function configureResultsRowClick() {
-      $("#results-grid").on(
-        "click",
-        "#results-table-body [role=row]",
-        event => {
-          $.tablesorter.clearTableBody($("#results-output-table"));
-
-          var filename = $(event.currentTarget)
-            .find("td:nth-child(1)")
-            .text();
-          var directory = $(event.currentTarget)
-            .find("td:nth-child(2)")
-            .text();
-
-          console.log(filename);
-          console.log(directory);
-          sendAction("getMatches", {
-            path: path.join(directory, filename),
-            content: previousSearch,
-            flags: []
-          });
-        }
-      );
-    }
-
-    function getGridHeight() {
-      return $("#results-grid").height() - 37;
-    }
-
-    function addWindowsEventListeners() {
-      $("#close").click(_ => BrowserWindow.getFocusedWindow().close());
-      $("#maximize").click(_ => {
-        var win = BrowserWindow.getFocusedWindow();
-        win.isMaximized() ? win.unmaximize() : win.maximize();
-      });
-      $("#minimize").click(_ => BrowserWindow.getFocusedWindow().minimize());
-    }
-
-    function go() {
-      var directory = document.getElementById("directory").value;
-      var filename = document.getElementById("filename").value;
-      var containing = document.getElementById("containing").value;
-      previousSearch = containing;
-
-      results.clear().draw();
-      $.tablesorter.clearTableBody($("#results-output-table"));
-
-      toggleState();
-
-      var shell = new PythonShell("api/queryFileNames.py", options);
-      shell.send(
-        JSON.stringify({
-          command: "getFiles",
-          path: directory,
-          glob: filename,
-          containing: containing
-        })
-      );
-
-      let rows = [];
-
-      shell.on("message", function(message) {
-        // received a message sent from the Python script (a simple "print" statement)
-        let file = JSON.parse(message);
-
-        if (file.searching) {
-          updateFooterBar(file.searching);
-          return;
-        }
-
-        rows.push([
-          file.filename,
-          file.directory,
-          mime.lookup(file.extension)
-            ? mime.lookup(file.extension)
-            : file.extension,
-          bytesToSize(file.stats.size),
-          dateFromTime(file.stats.access),
-          dateFromTime(file.stats.modified)
-        ]);
-      });
-
-      // end the input stream and allow the process to exit
-      shell.end(function(err) {
-        if (err) {
-          throw err;
-        }
-
-        results
-          .clear()
-          .rows.add(rows)
-          .draw();
-
-        rows = [];
-        toggleState();
-        resizeResultsGrid();
-      });
-    }
-
-    function updateFooterBar(searching) {
-      $("#footer-ready").text(`Searching ${searching} files...`);
-    }
-
-    function toggleState() {
-      $("#footer-loader").toggleClass("hidden");
-      $(".footer-bar .left").toggleClass("loading");
-
-      if ($("#footer-ready").text() != "Ready") {
-        $("#footer-ready").text("Ready");
-      } else {
-        $("#footer-ready").text("Searching...");
-      }
-    }
-
-    function browse() {
-      sendAction("browse");
-    }
-
-    function highlight(line, query) {
-      var check = new RegExp(escape(query), "ig");
-      return line.toString().replace(check, matchedText => {
-        return "<span class='highlightText'>" + matchedText + "</span>";
-      });
-    }
-
-    function bytesToSize(bytes, decimals = 2) {
-      if (bytes == 0) return "0 Bytes";
-      var k = 1024,
-        dm = decimals || 2,
-        sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
-        i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
-    }
-
-    function dateFromTime(time) {
-      return new Date(time).toLocaleString();
-    }
-
-    function sendAction(command, args = {}) {
-      require("electron").ipcRenderer.send(command, args);
-    }
-
-    function resizeResultsGrid() {
-      $("div.dataTables_scrollBody").height(getGridHeight());
-    }
-
-    window.addEventListener("resize", resizeResultsGrid);
-  </script>
+  <script src="icons.js"></script>
+  <script src="renderer.js"></script>
 </html>
